@@ -676,6 +676,7 @@ ClientHttpRequest::logRequest()
             updateCounters();
 
         if (getConn() != NULL && getConn()->clientConnection != NULL) {
+        #if USE_AUTH
             debugs(33, DBG_IMPORTANT, ">>>DEAN>>>Aqui es donde debo actualizar la base de datos");
             if (logTypeIsATcpHit(logType)) {
                 bool isLocalhost = true;
@@ -689,9 +690,13 @@ ClientHttpRequest::logRequest()
                 }
                 if (!isLocalhost) {
                     //Cambiar valores en base de datos segun fecha
+                    if (http->al->request && http->al->request->auth_user_request != NULL) {
+                    
+                    }
                 }
             }
             debugs(33, DBG_IMPORTANT, ">>>DEAN>>>Aqui es donde debo actualizar la base de datos");
+        #endif
             clientdbUpdate(getConn()->clientConnection->remote, logType, AnyP::PROTO_HTTP, out.size);
         }
     }
@@ -1887,6 +1892,35 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
     debugs(33, 5, HERE << conn << ", sz " << size <<
            ", err " << errflag << ", off " << http->out.size << ", len " <<
            (entry ? entry->objectLen() : 0));
+#if USE_AUTH
+    debugs(33, DBG_IMPORTANT, ">>>DEAN>>>Aqui es donde debo actualizar la base de datos");
+    if (logTypeIsATcpHit(logType)) {
+        bool isLocalhost = true;
+        char *localhost = "http://127.0.0.1/";
+        char *dest = al->url;
+        for (int i = 0; i < 17; i++) {
+            if (localhost[i] != dest[i]) {
+                isLocalhost = false;
+                break;
+            }
+        }
+        if (!isLocalhost) {
+            //Buscar usuario en memoria
+            if (http->al->request && http->al->request->auth_user_request != NULL) {
+                UserInfo *u = (UserInfo*)hash_lookup(users, http->al->request->auth_user_request->username());
+                if (u != NULL) { 
+                    if (u->quota < u->weekly + http->out.size) {
+                        //Overquota     Close
+                        conn->close();
+                    }
+                } else {
+                    //Buscar usuario en base de dato agregarlo a la memoria y hacer mismo analisis
+                }
+            }
+        }
+    }
+    debugs(33, DBG_IMPORTANT, ">>>DEAN>>>Aqui es donde debo actualizar la base de datos");
+#endif
     clientUpdateSocketStats(http->logType, size);
 
     /* Bail out quickly on Comm::ERR_CLOSING - close handlers will tidy up */

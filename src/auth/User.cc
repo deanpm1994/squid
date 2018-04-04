@@ -154,6 +154,11 @@ Auth::User::cacheInit(void)
         eventAdd("User Cache Maintenance", cacheCleanup, NULL, ::Config.authenticateGCInterval, 1);
         last_discard = squid_curtime;
     }
+    //DEAN
+    if (!users) {
+        users = hash_create((HASHCMP *) strcmp, 7921, hash_string);
+        assert(users);
+    }
 }
 
 void
