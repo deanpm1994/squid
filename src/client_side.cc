@@ -675,8 +675,25 @@ ClientHttpRequest::logRequest()
         if (request)
             updateCounters();
 
-        if (getConn() != NULL && getConn()->clientConnection != NULL)
+        if (getConn() != NULL && getConn()->clientConnection != NULL) {
+            debugs(33, DBG_IMPORTANT, ">>>DEAN>>>Aqui es donde debo actualizar la base de datos");
+            if (logTypeIsATcpHit(logType)) {
+                bool isLocalhost = true;
+                char *localhost = "http://127.0.0.1/";
+                char *dest = al->url;
+                for (int i = 0; i < 17; i++) {
+                    if (localhost[i] != dest[i]) {
+                        isLocalhost = false;
+                        break;
+                    }
+                }
+                if (!isLocalhost) {
+                    //Cambiar valores en base de datos segun fecha
+                }
+            }
+            debugs(33, DBG_IMPORTANT, ">>>DEAN>>>Aqui es donde debo actualizar la base de datos");
             clientdbUpdate(getConn()->clientConnection->remote, logType, AnyP::PROTO_HTTP, out.size);
+        }
     }
 }
 

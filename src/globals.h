@@ -119,5 +119,7 @@ extern int opt_parse_cfg_only; /* 0 */
 /// Zero for SMP-unaware code and in no-SMP mode.
 extern int KidIdentifier; /* 0 */
 
+
+extern hash_table *users;   /* NULL */
 #endif /* SQUID_GLOBALS_H */
 
