@@ -691,7 +691,19 @@ ClientHttpRequest::logRequest()
                 if (!isLocalhost) {
                     //Cambiar valores en base de datos segun fecha
                     if (http->al->request && http->al->request->auth_user_request != NULL) {
-                    
+                        float mb_size = out.size / 1024;
+                        float m = quotaDB->saveSize(http->al->request->auth_user_request->username(), mb_size, current_time);
+                        if ((UserInfo *u = (UserInfo*)hash_lookup(users, http->al->request->auth_user_request->username()))) {
+                            struct tm *tm;
+                            tm = localtime(&current_time);
+                            q = quotaDB->quota(http->al->request->auth_user_request->username());
+                            u->quota = q;
+                            // u->current = 0;
+                            u->monthly = m;
+                            u->lmonth = tm.tm_mon;
+                            u->lyear = tm.tm_year + 1900;
+                            u->expiretime = current_time;
+                        }
                     }
                 }
             }
@@ -1908,14 +1920,17 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
             //Buscar usuario en memoria
             if (http->al->request && http->al->request->auth_user_request != NULL) {
                 UserInfo *u = (UserInfo*)hash_lookup(users, http->al->request->auth_user_request->username());
-                if (u != NULL) { 
-                    if (u->quota < u->weekly + http->out.size) {
-                        //Overquota     Close
-                        conn->close();
-                    }
-                } else {
+                if (u == NULL) { 
                     //Buscar usuario en base de dato agregarlo a la memoria y hacer mismo analisis
+                    quotaDB->findUser(http->al->request->auth_user_request->username(), u);
+                    hash_join(users, u->hash);
                 }
+                float mb_size = http->out.size / 1024;
+                if (u->quota < u->monthly + http->out.size) {
+                    //Overquota
+                    float m = quotaDB->saveSize(http->al->request->auth_user_request->username(), mb_size, current_time);
+                    printf("%s\n",DEFAULT_PREFIX);
+                } 
             }
         }
     }

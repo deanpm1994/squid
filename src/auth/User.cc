@@ -219,6 +219,16 @@ Auth::User::cacheCleanup(void *datanotused)
             delete usernamehash;
         }
     }
+    //DEAN
+    UserInfo *userinfo;
+    hash_first(users);
+    while ((userinfo = ((UserInfo *) hash_next(users)))) {
+        if (userinfo->expiretime + 100000 <= current_time) {
+            debugs(29, 5, "DEAN ---- Removing user " << userinfo->username);
+            hash_remove_link(users, userinfo);
+            delete userinfo;
+        } 
+    }
 
     debugs(29, 3, HERE << "Finished cleaning the user cache.");
     eventAdd("User Cache Maintenance", cacheCleanup, NULL, ::Config.authenticateGCInterval, 1);

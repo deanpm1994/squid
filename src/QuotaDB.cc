@@ -3,6 +3,7 @@
 #include <mysql/mysql.h>
 #include <time.h>
 #include "globals.h"
+#include "SquidTime.h"
 
 #include "QuotaDB.h"
 
@@ -13,18 +14,38 @@ QuotaDB::findUser(const char *user, UserInfo& userInfo) {
         res = mysql_use_result(conn);
         while ((row=mysql_fetch_row(res)))
         {
+            user.hash.key = user;
             userInfo.username = user;
             userInfo.quota = atoi(row[0]);
+            // userInfo.current = 0;
             userInfo.monthly = atof(row[1]);
             userInfo.lmonth = atoi(row[2]);
             userInfo.lyear = atoi(row[3]);
+            userInfo.expiretime = current_time;
         }
         if (!mysql_eof(res)){
             printf("Lecture error: [%s]\n", mysql_error(conn));
         }
     }
 } 
-void
+int
+QuotaDB::quota(char *user) {
+    sprintf(query, "SELECT quota FROM %s WHERE user='%s'", DBNAME, user);
+    int quota = 0;
+    if (mysql_query(conn, query)==0) {
+        res = mysql_use_result(conn);
+        while ((row=mysql_fetch_row(res)))
+        {
+            quota = atof(row[0]);
+        }
+        if (!mysql_eof(res)){
+            printf("Lecture error: [%s]\n", mysql_error(conn));
+        }
+    }
+    return quota;
+}
+
+float
 QuotaDB::saveSize(char *user, float mb_size, time_t curr_time) {
     sprintf(query, "SELECT daily, weekly, monthly, last_mday, last_month, last_year, last_wday FROM %s WHERE user='%s'", DBNAME, user);
     float daily, weekly, monthly = 0;
@@ -82,6 +103,7 @@ QuotaDB::saveSize(char *user, float mb_size, time_t curr_time) {
         DBNAME, to_daily, to_weekly, to_monthly,
         now.tm_mday, now.tm_mon, now.tm_year + 1900, now.tm_wday, user);
     mysql_query(conn, query);
+    return to_monthly;
 }  
 
 

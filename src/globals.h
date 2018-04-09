@@ -16,6 +16,7 @@
 #include "IoStats.h"
 #include "rfc2181.h"
 #include "SBuf.h"
+#include "QuotaDB.h"
 
 extern char *ConfigFile;    /* NULL */
 extern char *IcpOpcodeStr[];
@@ -121,14 +122,7 @@ extern int KidIdentifier; /* 0 */
 
 
 extern hash_table *users;   /* NULL */
+extern QuotaDB *quotaDB;    /* new QuotaDB() */
 
-struct UserInfo {
-    hash_link hash;
-    const char *username;
-    int quota;
-    float monthly;
-    int lmonth;
-    int lyear;
-};
 #endif /* SQUID_GLOBALS_H */
 

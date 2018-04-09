@@ -3,6 +3,7 @@
 #include <mysql/mysql.h>
 #include <time.h>
 #include "globals.h"
+#include "SquidTime.h"
 
 
 #define HOST "localhost"
@@ -17,7 +18,8 @@ class QuotaDB
 public:
     QuotaDB();
     ~QuotaDB();
-    void saveSize(char *user, float mb_size, time_t curr_time);
+    float saveSize(char *user, float mb_size, time_t curr_time);
+    int quota(char *user);
     void findUser(const char *user, UserInfo& userInfo);
 
 private:
