@@ -1,9 +1,13 @@
+#ifndef __QUOTADB_H__
+#define __QUOTADB_H__
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <mysql/mysql.h>
+#include "mysql/mysql.h"
 #include <time.h>
-#include "globals.h"
+// #include "globals.h"
 #include "SquidTime.h"
+#include "UserInfo.h"
 
 
 #define HOST "localhost"
@@ -18,9 +22,9 @@ class QuotaDB
 public:
     QuotaDB();
     ~QuotaDB();
-    float saveSize(char *user, float mb_size, time_t curr_time);
-    int quota(char *user);
-    void findUser(const char *user, UserInfo& userInfo);
+    float saveSize(const char *user, float mb_size, time_t curr_time);
+    int quota(const char *user);
+    void findUser(const char *user, UserInfo* userInfo);
 
 private:
     MYSQL *conn;
@@ -44,3 +48,5 @@ QuotaDB::~QuotaDB()
 {
     mysql_close(conn);
 }
+
+#endif

@@ -470,6 +470,8 @@ squid_SOURCES = \
 	PeerSelectState.h \
 	PingData.h \
 	protos.h \
+	QuotaDB.h \  
+	QuotaDB.cc \
 	redirect.h \
 	redirect.cc \
 	refresh.h \
@@ -550,6 +552,7 @@ squid_SOURCES = \
 	URL.h \
 	urn.h \
 	urn.cc \
+	UserInfo.h \
 	wccp.h \
 	wccp.cc \
 	wccp2.h \

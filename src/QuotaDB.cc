@@ -1,27 +1,29 @@
+#include "squid.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <mysql/mysql.h>
+#include "mysql/mysql.h"
 #include <time.h>
-#include "globals.h"
-#include "SquidTime.h"
+// #include "globals.h"
+// #include "SquidTime.h"
+#include "UserInfo.h"
 
 #include "QuotaDB.h"
 
 void
-QuotaDB::findUser(const char *user, UserInfo& userInfo) {
+QuotaDB::findUser(const char *user, UserInfo* userInfo) {
     sprintf(query, "SELECT quota, monthly, last_month, last_year FROM %s WHERE user='%s'", DBNAME, user);
     if (mysql_query(conn, query)==0) {
         res = mysql_use_result(conn);
         while ((row=mysql_fetch_row(res)))
         {
-            user.hash.key = user;
-            userInfo.username = user;
-            userInfo.quota = atoi(row[0]);
+            userInfo->hash.key = (void *)user;
+            userInfo->username = user;
+            userInfo->quota = atoi(row[0]);
             // userInfo.current = 0;
-            userInfo.monthly = atof(row[1]);
-            userInfo.lmonth = atoi(row[2]);
-            userInfo.lyear = atoi(row[3]);
-            userInfo.expiretime = current_time;
+            userInfo->monthly = atof(row[1]);
+            userInfo->lmonth = atoi(row[2]);
+            userInfo->lyear = atoi(row[3]);
+            userInfo->expiretime = current_time.tv_sec;
         }
         if (!mysql_eof(res)){
             printf("Lecture error: [%s]\n", mysql_error(conn));
@@ -29,7 +31,7 @@ QuotaDB::findUser(const char *user, UserInfo& userInfo) {
     }
 } 
 int
-QuotaDB::quota(char *user) {
+QuotaDB::quota(const char *user) {
     sprintf(query, "SELECT quota FROM %s WHERE user='%s'", DBNAME, user);
     int quota = 0;
     if (mysql_query(conn, query)==0) {
@@ -46,11 +48,11 @@ QuotaDB::quota(char *user) {
 }
 
 float
-QuotaDB::saveSize(char *user, float mb_size, time_t curr_time) {
+QuotaDB::saveSize(const char *user, float mb_size, time_t curr_time) {
     sprintf(query, "SELECT daily, weekly, monthly, last_mday, last_month, last_year, last_wday FROM %s WHERE user='%s'", DBNAME, user);
-    float daily, weekly, monthly = 0;
-    float to_daily, to_weekly, to_monthly = 0;
-    int last_mday, last_month, last_year, last_wday = 0;
+    float daily = 0; float weekly = 0; float monthly = 0;
+    float to_daily = 0; float to_weekly = 0; float to_monthly = 0;
+    int last_mday = 0; int last_month = 0; int last_year = 0; int last_wday = 0;
     if (mysql_query(conn, query)==0) {
         res = mysql_use_result(conn);
         while ((row=mysql_fetch_row(res)))

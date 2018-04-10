@@ -680,8 +680,8 @@ ClientHttpRequest::logRequest()
             debugs(33, DBG_IMPORTANT, ">>>DEAN>>>Aqui es donde debo actualizar la base de datos");
             if (logTypeIsATcpHit(logType)) {
                 bool isLocalhost = true;
-                char *localhost = "http://127.0.0.1/";
-                char *dest = al->url;
+                const char *localhost = "http://127.0.0.1/";
+                const char *dest = al->url;
                 for (int i = 0; i < 17; i++) {
                     if (localhost[i] != dest[i]) {
                         isLocalhost = false;
@@ -690,19 +690,21 @@ ClientHttpRequest::logRequest()
                 }
                 if (!isLocalhost) {
                     //Cambiar valores en base de datos segun fecha
-                    if (http->al->request && http->al->request->auth_user_request != NULL) {
+                    if (al->request && al->request->auth_user_request != NULL) {
+                        time_t t;
                         float mb_size = out.size / 1024;
-                        float m = quotaDB->saveSize(http->al->request->auth_user_request->username(), mb_size, current_time);
-                        if ((UserInfo *u = (UserInfo*)hash_lookup(users, http->al->request->auth_user_request->username()))) {
+                        float m = quotaDB->saveSize(al->request->auth_user_request->username(), mb_size, t);
+                        UserInfo *u = (UserInfo*)hash_lookup(users, al->request->auth_user_request->username());
+                        if (u != NULL) {
                             struct tm *tm;
-                            tm = localtime(&current_time);
-                            q = quotaDB->quota(http->al->request->auth_user_request->username());
+                            tm = localtime(&t);
+                            int q = quotaDB->quota(al->request->auth_user_request->username());
                             u->quota = q;
                             // u->current = 0;
                             u->monthly = m;
-                            u->lmonth = tm.tm_mon;
-                            u->lyear = tm.tm_year + 1900;
-                            u->expiretime = current_time;
+                            u->lmonth = tm->tm_mon;
+                            u->lyear = tm->tm_year + 1900;
+                            u->expiretime = current_time.tv_sec;
                         }
                     }
                 }
@@ -1906,10 +1908,10 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
            (entry ? entry->objectLen() : 0));
 #if USE_AUTH
     debugs(33, DBG_IMPORTANT, ">>>DEAN>>>Aqui es donde debo actualizar la base de datos");
-    if (logTypeIsATcpHit(logType)) {
+    if (logTypeIsATcpHit(http->logType)) {
         bool isLocalhost = true;
-        char *localhost = "http://127.0.0.1/";
-        char *dest = al->url;
+        const char *localhost = "http://127.0.0.1/";
+        const char *dest = http->al->url;
         for (int i = 0; i < 17; i++) {
             if (localhost[i] != dest[i]) {
                 isLocalhost = false;
@@ -1923,13 +1925,19 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
                 if (u == NULL) { 
                     //Buscar usuario en base de dato agregarlo a la memoria y hacer mismo analisis
                     quotaDB->findUser(http->al->request->auth_user_request->username(), u);
-                    hash_join(users, u->hash);
+                    hash_join(users, &u->hash);
                 }
                 float mb_size = http->out.size / 1024;
                 if (u->quota < u->monthly + http->out.size) {
                     //Overquota
-                    float m = quotaDB->saveSize(http->al->request->auth_user_request->username(), mb_size, current_time);
-                    printf("%s\n",DEFAULT_PREFIX);
+                    float m = quotaDB->saveSize(http->al->request->auth_user_request->username(), mb_size,current_time.tv_sec);
+                    char path_squished[512];
+                    fprintf(path_squished, "%s/squid/squished", DEFAULT_SQUID_CONFIG_DIR);
+                    debugs(33, DBG_IMPORTANT, "DEAN----Path to squished users");
+                    FILE *f;
+                    f = fopen(path_squished, "a");
+                    fprintf(f, "%s\n", http->al->request->auth_user_request->username());
+                    fclose(f);
                 } 
             }
         }
