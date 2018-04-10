@@ -1932,8 +1932,8 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
                     //Overquota
                     float m = quotaDB->saveSize(http->al->request->auth_user_request->username(), mb_size,current_time.tv_sec);
                     char path_squished[512];
-                    fprintf(path_squished, "%s/squid/squished", DEFAULT_SQUID_CONFIG_DIR);
-                    debugs(33, DBG_IMPORTANT, "DEAN----Path to squished users");
+                    sprintf(path_squished, "%s/squid/squished", DEFAULT_SQUID_CONFIG_DIR);
+                    debugs(33, DBG_IMPORTANT, "DEAN----Path to squished users" << m);
                     FILE *f;
                     f = fopen(path_squished, "a");
                     fprintf(f, "%s\n", http->al->request->auth_user_request->username());

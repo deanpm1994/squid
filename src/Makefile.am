@@ -234,6 +234,7 @@ cf_gen.$(OBJEXT): cf_gen_defines.cci
 
 ## cf_gen.cc needs src/cf_gen_defines.cci
 AM_CPPFLAGS += -I$(top_builddir)/src
+AM_CPPFLAGS += -I$(top_builddir)/include/mysql
 
 
 ACL_REGISTRATION_SOURCES = AclRegs.cc AuthReg.cc
@@ -470,7 +471,7 @@ squid_SOURCES = \
 	PeerSelectState.h \
 	PingData.h \
 	protos.h \
-	QuotaDB.h \  
+	QuotaDB.h \
 	QuotaDB.cc \
 	redirect.h \
 	redirect.cc \
@@ -683,7 +684,9 @@ squid_DEPENDENCIES = \
 if ENABLE_LOADABLE_MODULES
 squid_SOURCES += $(LOADABLE_MODULES_SOURCES)
 squid_LDADD += -L$(top_builddir) $(LIBLTDL)
+squid_LDADD += -lmysqlclient
 squid_LDFLAGS = -export-dynamic -dlopen force
+squid_LDFLAGS += -lmysqlclient
 ## when static module linking is supported and enabled:
 ## squid_LDFLAGS = -all-static -dlopen self
 ##
