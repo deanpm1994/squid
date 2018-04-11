@@ -223,7 +223,7 @@ Auth::User::cacheCleanup(void *datanotused)
     UserInfo *userinfo;
     hash_first(users);
     while ((userinfo = ((UserInfo *) hash_next(users)))) {
-        if (userinfo->expiretime + 100000 <= current_time.tv_sec) {
+        if (userinfo->expiretime + 10000 <= current_time.tv_sec) {
             debugs(29, 5, "DEAN ---- Removing user " << userinfo->username);
             hash_remove_link(users, &userinfo->hash);
             delete userinfo;

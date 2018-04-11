@@ -689,22 +689,13 @@ ClientHttpRequest::logRequest()
                     }
                 }
                 if (!isLocalhost) {
-                    //Cambiar valores en base de datos segun fecha
                     if (al->request && al->request->auth_user_request != NULL) {
-                        time_t t;
                         float mb_size = out.size / 1024;
-                        float m = quotaDB->saveSize(al->request->auth_user_request->username(), mb_size, t);
                         UserInfo *u = (UserInfo*)hash_lookup(users, al->request->auth_user_request->username());
                         if (u != NULL) {
-                            struct tm *tm;
-                            tm = localtime(&t);
-                            int q = quotaDB->quota(al->request->auth_user_request->username());
-                            u->quota = q;
-                            // u->current = 0;
-                            u->monthly = m;
-                            u->lmonth = tm->tm_mon;
-                            u->lyear = tm->tm_year + 1900;
-                            u->expiretime = current_time.tv_sec;
+                            u->current = 0;
+                            u->mod_time = ctime(&squid_curtime);
+                            u->expiretime = squid_curtime;
                         }
                     }
                 }
@@ -1924,21 +1915,32 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
                 UserInfo *u = (UserInfo*)hash_lookup(users, http->al->request->auth_user_request->username());
                 if (u == NULL) { 
                     //Buscar usuario en base de dato agregarlo a la memoria y hacer mismo analisis
-                    quotaDB->findUser(http->al->request->auth_user_request->username(), u);
+                    quotaDB->Find(http->al->request->auth_user_request->username(), u);
                     hash_join(users, &u->hash);
                 }
-                float mb_size = http->out.size / 1024;
-                if (u->quota < u->monthly + http->out.size) {
-                    //Overquota
-                    float m = quotaDB->saveSize(http->al->request->auth_user_request->username(), mb_size,current_time.tv_sec);
-                    char path_squished[512];
-                    sprintf(path_squished, "%s/squid/squished", DEFAULT_SQUID_CONFIG_DIR);
-                    debugs(33, DBG_IMPORTANT, "DEAN----Path to squished users" << m);
-                    FILE *f;
-                    f = fopen(path_squished, "a");
-                    fprintf(f, "%s\n", http->al->request->auth_user_request->username());
-                    fclose(f);
-                } 
+                else {
+                    float mb_size = http->out.size / 1024;
+                    if (u->quota < u->current + http->out.size) {
+                        //Overquota
+                        int q = quotaDB->Quota(http->al->request->auth_user_request->username());
+                        float c = quotaDB->Consumed(http->al->request->auth_user_request->username());
+                        if (q <= u->quota && c >= u->current) {
+                            quotaDB->SaveData(http->al->request->auth_user_request->username(), mb_size,ctime(&squid_curtime));
+                            char path_squished[512];
+                            sprintf(path_squished, "%s/squid/squished", DEFAULT_SQUID_CONFIG_DIR);
+                            debugs(33, DBG_IMPORTANT, "DEAN----Path to squished users" << m);
+                            FILE *f;
+                            f = fopen(path_squished, "a");
+                            fprintf(f, "%s\n", http->al->request->auth_user_request->username());
+                            fclose(f);
+                            hash_remove_link(users, &u->hash);
+                            delete u;
+                        }
+                    }
+                    else {
+                        u->expiretime = squid_curtime;
+                    } 
+                }
             }
         }
     }
