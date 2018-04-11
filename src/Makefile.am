@@ -1059,7 +1059,7 @@ CLEANFILES += cf.data squid.conf.default squid.conf.documented \
 	test_tools.cc *.a
 
 test_tools.cc: $(top_srcdir)/test-suite/test_tools.cc
-	cp $(top_srcdir)/test-suite/test_tools.cc .
+	$(top_srcdir)/test-suite/test_tools.cc .
 
 # stock tools for unit tests - library independent versions of dlink_list 
 # etc.
