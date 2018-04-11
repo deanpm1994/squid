@@ -5,12 +5,12 @@
 #include <time.h>
 // #include "globals.h"
 // #include "SquidTime.h"
-#include "UserInfo.h"
+// #include "UserInfo.h"
 
 #include "QuotaDB.h"
 
-void SaveData(const char *username, float current, const char *mod_time) {
-    sprintf(query, "update %s set consumed=%.2f modificated=%s where user=%s", current, mod_time, username);
+void QuotaDB::SaveData(const char *username, float current, const char *mod_time) {
+    sprintf(query, "update %s set consumed=%.2f modificated=%s where user=%s", DBNAME, current, mod_time, username);
     res = PQexec(conn,query);
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         printf("Error: %s",PQresultErrorMessage(res));
@@ -19,7 +19,7 @@ void SaveData(const char *username, float current, const char *mod_time) {
 }
 
 void
-QuotaDB::Find(const char *username, UserInfo* userInfo) {
+QuotaDB::Find(const char *username, UserInfo *userInfo) {
     sprintf(query, "select quota,consumed,modificated from %s where user='%s'", DBNAME, username);
     res = PQexec(conn,query);
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
@@ -40,7 +40,7 @@ QuotaDB::Quota(const char *username) {
     int quota = 0;
     res = PQexec(conn,query);
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
-        userInfo->quota = atoi(PQgetvalue(res, 0, 0));
+        quota = atoi(PQgetvalue(res, 0, 0));
     }
     else {
         printf("Error: %s",PQresultErrorMessage(res));
@@ -49,12 +49,12 @@ QuotaDB::Quota(const char *username) {
     return quota;
 }
 float
-QuotaDB::Quota(const char *username) {
+QuotaDB::Consumed(const char *username) {
     sprintf(query, "select consumed from %s where user=%s", DBNAME, username);
     int consumed = 0;
     res = PQexec(conn,query);
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
-        userInfo->current= atof(PQgetvalue(res, 0, 0));
+        consumed= atof(PQgetvalue(res, 0, 0));
     }
     else {
         printf("Error: %s",PQresultErrorMessage(res));

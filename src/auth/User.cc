@@ -224,7 +224,8 @@ Auth::User::cacheCleanup(void *datanotused)
     hash_first(users);
     while ((userinfo = ((UserInfo *) hash_next(users)))) {
         if (userinfo->expiretime + 10000 <= current_time.tv_sec) {
-            debugs(29, 5, "DEAN ---- Removing user " << userinfo->username);
+            debugs(33, DBG_IMPORTANT, "Deleting user " << userinfo->username);
+            quotaDB->SaveData(userinfo->username, userinfo->current,ctime(&squid_curtime));
             hash_remove_link(users, &userinfo->hash);
             delete userinfo;
         } 

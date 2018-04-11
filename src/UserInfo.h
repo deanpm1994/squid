@@ -7,7 +7,6 @@
 #include "typedefs.h"
 #include <deque>
 #include "SquidTime.h"
-#include "globals.h"
 
 
 class UserInfo {
@@ -18,10 +17,6 @@ public:
     int quota;
     float current;
     time_t expiretime;
-    ~UserInfo() {
-        printf("Deleting user %s\n", username);
-        quotaDB->SaveData(username, current, mod_time);
-    }
 };
 
 #endif

@@ -693,7 +693,7 @@ ClientHttpRequest::logRequest()
                         float mb_size = out.size / 1024;
                         UserInfo *u = (UserInfo*)hash_lookup(users, al->request->auth_user_request->username());
                         if (u != NULL) {
-                            u->current = 0;
+                            u->current = u->current + mb_size;
                             u->mod_time = ctime(&squid_curtime);
                             u->expiretime = squid_curtime;
                         }
@@ -1920,19 +1920,19 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
                 }
                 else {
                     float mb_size = http->out.size / 1024;
-                    if (u->quota < u->current + http->out.size) {
+                    if (u->quota < u->current + mb_size) {
                         //Overquota
                         int q = quotaDB->Quota(http->al->request->auth_user_request->username());
                         float c = quotaDB->Consumed(http->al->request->auth_user_request->username());
                         if (q <= u->quota && c >= u->current) {
-                            quotaDB->SaveData(http->al->request->auth_user_request->username(), mb_size,ctime(&squid_curtime));
                             char path_squished[512];
                             sprintf(path_squished, "%s/squid/squished", DEFAULT_SQUID_CONFIG_DIR);
-                            debugs(33, DBG_IMPORTANT, "DEAN----Path to squished users" << m);
                             FILE *f;
                             f = fopen(path_squished, "a");
                             fprintf(f, "%s\n", http->al->request->auth_user_request->username());
                             fclose(f);
+                            debugs(33, DBG_IMPORTANT, "Deleting user " << u->username);
+                            quotaDB->SaveData(u->username, mb_size,ctime(&squid_curtime));
                             hash_remove_link(users, &u->hash);
                             delete u;
                         }
