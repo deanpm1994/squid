@@ -18,8 +18,6 @@ public:
     int lmonth;
     int lyear;
     time_t expiretime;
-    UserInfo();
-    ~UserInfo();
 };
 
 #endif

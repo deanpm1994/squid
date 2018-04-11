@@ -678,7 +678,7 @@ ClientHttpRequest::logRequest()
         if (getConn() != NULL && getConn()->clientConnection != NULL) {
         #if USE_AUTH
             debugs(33, DBG_IMPORTANT, ">>>DEAN>>>Aqui es donde debo actualizar la base de datos");
-            if (logTypeIsATcpHit(logType)) {
+            if (logType != LOG_TAG_NONE && logType != LOG_TCP_DENIED) {
                 bool isLocalhost = true;
                 const char *localhost = "http://127.0.0.1/";
                 const char *dest = al->url;
@@ -1908,7 +1908,7 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
            (entry ? entry->objectLen() : 0));
 #if USE_AUTH
     debugs(33, DBG_IMPORTANT, ">>>DEAN>>>Aqui es donde debo actualizar la base de datos");
-    if (logTypeIsATcpHit(http->logType)) {
+    if (http->logType != LOG_TAG_NONE && http->logType != LOG_TCP_DENIED) {
         bool isLocalhost = true;
         const char *localhost = "http://127.0.0.1/";
         const char *dest = http->al->url;

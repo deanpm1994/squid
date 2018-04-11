@@ -1,7 +1,7 @@
 #include "squid.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "mysql.h"
+#include "mysql/mysql.h"
 #include <time.h>
 // #include "globals.h"
 // #include "SquidTime.h"
