@@ -343,7 +343,7 @@ TunnelStateData::ReadServer(const Comm::ConnectionPointer &c, char *buf, size_t 
 
 #if USE_AUTH
     debugs(33, DBG_IMPORTANT, "DEAN---EN LA CONNEXION POR TUNNEL");
-    if (tunnelState->logTag_ptr != LOG_TAG_NONE && tunnelState->logTag_ptr != LOG_TCP_DENIED) {
+    if (*tunnelState->logTag_ptr != LOG_TAG_NONE && *tunnelState->logTag_ptr != LOG_TCP_DENIED) {
         bool isLocalhost = true;
         const char *localhost = "http://127.0.0.1/";
         const char *dest = tunnelState->url;
@@ -368,8 +368,8 @@ TunnelStateData::ReadServer(const Comm::ConnectionPointer &c, char *buf, size_t 
                     if (u->quota < u->current + mb_size) {
                         //Overquota
                         int q = quotaDB->Quota(tunnelState->request->auth_user_request->username());
-                        float c = quotaDB->Consumed(tunnelState->request->auth_user_request->username());
-                        if (q <= u->quota && c >= u->current) {
+                        float con = quotaDB->Consumed(tunnelState->request->auth_user_request->username());
+                        if (q <= u->quota && con >= u->current) {
                             char path_squished[512];
                             sprintf(path_squished, "%s/squid/squished", DEFAULT_SQUID_CONFIG_DIR);
                             FILE *f;
