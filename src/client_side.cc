@@ -693,6 +693,7 @@ ClientHttpRequest::logRequest()
                         float mb_size = out.size / 1024;
                         UserInfo *u = (UserInfo*)hash_lookup(users, al->request->auth_user_request->username());
                         if (u != NULL) {
+                            u->tunnel = 19;
                             u->current = u->current + mb_size;
                             u->mod_time = ctime(&squid_curtime);
                             u->expiretime = squid_curtime;

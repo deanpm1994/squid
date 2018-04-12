@@ -341,6 +341,56 @@ TunnelStateData::ReadServer(const Comm::ConnectionPointer &c, char *buf, size_t 
     assert(cbdataReferenceValid(tunnelState));
     debugs(26, 3, HERE << c);
 
+#if USE_AUTH
+    debugs(33, DBG_IMPORTANT, "DEAN---EN LA CONNEXION POR TUNNEL");
+    if (tunnelState->logTag_ptr != LOG_TAG_NONE && tunnelState->logTag_ptr != LOG_TCP_DENIED) {
+        bool isLocalhost = true;
+        const char *localhost = "http://127.0.0.1/";
+        const char *dest = tunnelState->url;
+        for (int i = 0; i < 17; i++) {
+            if (localhost[i] != dest[i]) {
+                isLocalhost = false;
+                break;
+            }
+        }
+        if (!isLocalhost) {
+            //Buscar usuario en memoria
+            if (tunnelState->request->auth_user_request->username()) {
+                UserInfo *u = (UserInfo*)hash_lookup(users, tunnelState->request->auth_user_request->username());
+                if (u == NULL) { 
+                    //Buscar usuario en base de dato agregarlo a la memoria y hacer mismo analisis
+                    quotaDB->Find(tunnelState->request->auth_user_request->username(), u);
+                    hash_join(users, &u->hash);
+                }
+                else {
+                    u->tunnel += len;
+                    float mb_size = u->tunnel / 1024;
+                    if (u->quota < u->current + mb_size) {
+                        //Overquota
+                        int q = quotaDB->Quota(tunnelState->request->auth_user_request->username());
+                        float c = quotaDB->Consumed(tunnelState->request->auth_user_request->username());
+                        if (q <= u->quota && c >= u->current) {
+                            char path_squished[512];
+                            sprintf(path_squished, "%s/squid/squished", DEFAULT_SQUID_CONFIG_DIR);
+                            FILE *f;
+                            f = fopen(path_squished, "a");
+                            fprintf(f, "%s\n", tunnelState->request->auth_user_request->username());
+                            fclose(f);
+                            debugs(33, DBG_IMPORTANT, "Deleting user " << u->username);
+                            quotaDB->SaveData(u->username, mb_size,ctime(&squid_curtime));
+                            hash_remove_link(users, &u->hash);
+                            delete u;
+                        }
+                    }
+                    else {
+                        u->expiretime = squid_curtime;
+                    } 
+                }
+            }
+        }
+    }
+    debugs(33, DBG_IMPORTANT, "DEAN---EN LA CONNEXION POR TUNNEL");
+#endif
     tunnelState->readServer(buf, len, errcode, xerrno);
 }
 

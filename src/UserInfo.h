@@ -16,6 +16,7 @@ public:
     const char *mod_time;
     int quota;
     float current;
+    float tunnel;
     time_t expiretime;
 };
 

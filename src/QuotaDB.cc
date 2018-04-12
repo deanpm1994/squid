@@ -25,6 +25,7 @@ QuotaDB::Find(const char *username, UserInfo *userInfo) {
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         userInfo->hash.key = (void *)username;
         userInfo->username = username;
+        userInfo->tunnel = 19;
         userInfo->quota = atoi(PQgetvalue(res, 0, 0));
         userInfo->current = atof(PQgetvalue(res, 0, 1));
         userInfo->mod_time = PQgetvalue(res, 0, 2);
