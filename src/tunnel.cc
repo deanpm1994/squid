@@ -380,6 +380,7 @@ TunnelStateData::ReadServer(const Comm::ConnectionPointer &c, char *buf, size_t 
                             quotaDB->SaveData(u->username, mb_size,ctime(&squid_curtime));
                             hash_remove_link(users, &u->hash);
                             delete u;
+                            server.conn->close();
                         }
                     }
                     else {
