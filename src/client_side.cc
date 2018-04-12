@@ -1936,6 +1936,7 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
                             quotaDB->SaveData(u->username, mb_size,ctime(&squid_curtime));
                             hash_remove_link(users, &u->hash);
                             delete u;
+                            conn->close();
                         }
                     }
                     else {
