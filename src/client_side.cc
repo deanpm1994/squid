@@ -695,7 +695,7 @@ ClientHttpRequest::logRequest()
                         if (u != NULL) {
                             u->tunnel = 19;
                             u->current = u->current + mb_size;
-                            u->mod_time = ctime(&squid_curtime);
+                            // u->mod_time = ctime(&squid_curtime);
                             u->expiretime = squid_curtime;
                         }
                     }
@@ -1933,7 +1933,7 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
                             fprintf(f, "%s\n", http->al->request->auth_user_request->username());
                             fclose(f);
                             debugs(33, DBG_IMPORTANT, "Deleting user " << u->username);
-                            quotaDB->SaveData(u->username, mb_size,ctime(&squid_curtime));
+                            quotaDB->SaveData(u->username, mb_size);
                             hash_remove_link(users, &u->hash);
                             delete u;
                             conn->close();

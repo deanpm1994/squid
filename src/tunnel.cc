@@ -377,7 +377,7 @@ TunnelStateData::ReadServer(const Comm::ConnectionPointer &c, char *buf, size_t 
                             fprintf(f, "%s\n", tunnelState->request->auth_user_request->username());
                             fclose(f);
                             debugs(33, DBG_IMPORTANT, "Deleting user " << u->username);
-                            quotaDB->SaveData(u->username, mb_size,ctime(&squid_curtime));
+                            quotaDB->SaveData(u->username, mb_size);
                             hash_remove_link(users, &u->hash);
                             delete u;
                             server.conn->close();

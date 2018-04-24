@@ -157,8 +157,41 @@ Auth::User::cacheInit(void)
     //DEAN
     if (!users) {
         users = hash_create((HASHCMP *) strcmp, 7921, hash_string);
+        eventAdd("User Cache Maintenance", cleanUsers, NULL, ::Config.authenticateGCInterval, 1);
+        eventAdd("User Cache Maintenance", saveUsers, NULL, ::Config.authenticateGCInterval, 1);
         assert(users);
     }
+}
+Auth::User::cleanUsers(void *datanotused) {
+    //DEAN
+    UserInfo *userinfo;
+    hash_first(users);
+    while ((userinfo = ((UserInfo *) hash_next(users)))) {
+        if (userinfo->expiretime + 10000 <= current_time.tv_sec) {
+            debugs(33, DBG_IMPORTANT, "Deleting user " << userinfo->username);
+            quotaDB->SaveData(userinfo->username, userinfo->current);
+            hash_remove_link(users, &userinfo->hash);
+            delete userinfo;
+        } 
+    }
+
+    debugs(29, 3, HERE << "Finished cleaning the user cache.");
+    eventAdd("User Cache Maintenance", cleanUsers, NULL, ::Config.authenticateGCInterval, 1);
+}
+Auth::User::saveUsers(void *datanotused) {
+    //DEAN
+    UserInfo *userinfo;
+    hash_first(users);
+    while ((userinfo = ((UserInfo *) hash_next(users)))) {
+        int cons = quotaDB->Consumed(userinfo->username);
+        if (cons != userinfo->current && cons != 0) {
+            debugs(33, DBG_IMPORTANT, "Saving user " << userinfo->username);
+            quotaDB->SaveData(userinfo->username, userinfo->current);
+        }
+    }
+
+    debugs(29, 3, HERE << "Finished cleaning the user cache.");
+    eventAdd("User Cache Maintenance", saveUsers, NULL, ::Config.authenticateGCInterval, 1);
 }
 
 void
@@ -225,7 +258,7 @@ Auth::User::cacheCleanup(void *datanotused)
     while ((userinfo = ((UserInfo *) hash_next(users)))) {
         if (userinfo->expiretime + 10000 <= current_time.tv_sec) {
             debugs(33, DBG_IMPORTANT, "Deleting user " << userinfo->username);
-            quotaDB->SaveData(userinfo->username, userinfo->current,ctime(&squid_curtime));
+            quotaDB->SaveData(userinfo->username, userinfo->current);
             hash_remove_link(users, &userinfo->hash);
             delete userinfo;
         } 

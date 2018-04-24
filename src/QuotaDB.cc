@@ -9,10 +9,10 @@
 
 #include "QuotaDB.h"
 
-void QuotaDB::SaveData(const char *username, float current, const char *mod_time) {
-    sprintf(query, "update %s set consumed=%.2f modificated=%s where user=%s", DBNAME, current, mod_time, username);
+void QuotaDB::SaveData(const char *username, int current) {
+    sprintf(query, "UPDATE %s SET consumido=%f WHERE correo='%s'", TABLE, current, username);
     res = PQexec(conn,query);
-    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+    if (PQresultStatus(res) == PGRES_TUPLES_OK) {
         printf("Error: %s",PQresultErrorMessage(res));
     }
     PQclear(res);
@@ -20,15 +20,15 @@ void QuotaDB::SaveData(const char *username, float current, const char *mod_time
 
 void
 QuotaDB::Find(const char *username, UserInfo *userInfo) {
-    sprintf(query, "select quota,consumed,modificated from %s where user='%s'", DBNAME, username);
+    sprintf(query, "SELECT cuota_internet,consumido FROM %s WHERE correo='%s'", TABLE, username);
     res = PQexec(conn,query);
-    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+    if (PQresultStatus(res) == PGRES_TUPLES_OK) {
         userInfo->hash.key = (void *)username;
         userInfo->username = username;
         userInfo->tunnel = 19;
         userInfo->quota = atoi(PQgetvalue(res, 0, 0));
-        userInfo->current = atof(PQgetvalue(res, 0, 1));
-        userInfo->mod_time = PQgetvalue(res, 0, 2);
+        userInfo->current = atoi(PQgetvalue(res, 0, 1));
+        // userInfo->mod_time = PQgetvalue(res, 0, 2);
     }
     else {
         printf("Error: %s",PQresultErrorMessage(res));
@@ -37,10 +37,10 @@ QuotaDB::Find(const char *username, UserInfo *userInfo) {
 } 
 int
 QuotaDB::Quota(const char *username) {
-    sprintf(query, "select quota from %s where user=%s", DBNAME, username);
+    sprintf(query, "SELECT cuota_internet FROM %s WHERE correo='%s'", TABLE, username);
     int quota = 0;
     res = PQexec(conn,query);
-    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+    if (PQresultStatus(res) == PGRES_TUPLES_OK) {
         quota = atoi(PQgetvalue(res, 0, 0));
     }
     else {
@@ -49,13 +49,13 @@ QuotaDB::Quota(const char *username) {
     PQclear(res);
     return quota;
 }
-float
+int
 QuotaDB::Consumed(const char *username) {
-    sprintf(query, "select consumed from %s where user=%s", DBNAME, username);
+    sprintf(query, "SELECT consumido FROM %s WHERE correo='%s'", TABLE, username);
     int consumed = 0;
     res = PQexec(conn,query);
-    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
-        consumed= atof(PQgetvalue(res, 0, 0));
+    if (PQresultStatus(res) == PGRES_TUPLES_OK) {
+        consumed= atoi(PQgetvalue(res, 0, 0));
     }
     else {
         printf("Error: %s",PQresultErrorMessage(res));
@@ -65,7 +65,7 @@ QuotaDB::Consumed(const char *username) {
 }
 // float
 // QuotaDB::saveSize(const char *user, float mb_size, time_t curr_time) {
-//     sprintf(query, "SELECT daily, weekly, monthly, last_mday, last_month, last_year, last_wday FROM %s WHERE user='%s'", DBNAME, user);
+//     sprintf(query, "SELECT daily, weekly, monthly, last_mday, last_month, last_year, last_wday FROM %s WHERE user='%s'", TABLE, user);
 //     float daily = 0; float weekly = 0; float monthly = 0;
 //     float to_daily = 0; float to_weekly = 0; float to_monthly = 0;
 //     int last_mday = 0; int last_month = 0; int last_year = 0; int last_wday = 0;

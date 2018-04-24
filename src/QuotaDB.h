@@ -10,11 +10,11 @@
 #include "UserInfo.h"
 
 
-#define HOST "localhost"
-#define USER "squid2"
-#define PASS "squid"
-#define DBNAME "quotasDB"
-#define TABLE "quotas"
+#define HOST "10.6.143.9"
+#define USER "proxy"
+#define PASS "yoidUct0"
+#define DBNAME "proxy_db"
+#define TABLE "estudiantes_dean"
 
 
 class QuotaDB
@@ -22,10 +22,10 @@ class QuotaDB
 public:
 
     // float saveSize(const char *user, float mb_size, time_t curr_time);
-    void SaveData(const char *username, float current, const char *mod_time);
+    void SaveData(const char *username, int current);
     void Find(const char *username, UserInfo *userInfo);
     int Quota(const char *username);
-    float Consumed(const char *username);
+    int Consumed(const char *username);
     ~QuotaDB()
     {
         sprintf(query, "dbname=%s host=%s user=%s password=%s", DBNAME, HOST, USER, PASS);

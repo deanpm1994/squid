@@ -13,9 +13,9 @@ class UserInfo {
 public:
     hash_link hash;
     const char *username;
-    const char *mod_time;
+    // const char *mod_time;
     int quota;
-    float current;
+    int64_t current;
     float tunnel;
     time_t expiretime;
 };
