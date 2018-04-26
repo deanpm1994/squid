@@ -678,28 +678,37 @@ ClientHttpRequest::logRequest()
         if (getConn() != NULL && getConn()->clientConnection != NULL) {
         #if USE_AUTH
             debugs(33, DBG_IMPORTANT, ">>>DEAN>>>Aqui es donde debo actualizar la base de datos");
-            if (logType != LOG_TAG_NONE && logType != LOG_TCP_DENIED) {
-                bool isLocalhost = true;
-                const char *localhost = "http://127.0.0.1/";
-                const char *dest = al->url;
-                for (int i = 0; i < 17; i++) {
-                    if (localhost[i] != dest[i]) {
-                        isLocalhost = false;
-                        break;
+            try
+            {
+                debugs(33, DBG_IMPORTANT, "AQUI");
+                if (logType != LOG_TAG_NONE && logType != LOG_TCP_DENIED) {
+                    debugs(33, DBG_IMPORTANT, "AQUI");
+                    bool isLocalhost = true;
+                    const char *localhost = "http://127.0.0.1/";
+                    const char *dest = al->url;
+                    for (int i = 0; i < 17; i++) {
+                        if (localhost[i] != dest[i]) {
+                            isLocalhost = false;
+                            break;
+                        }
                     }
-                }
-                if (!isLocalhost) {
-                    if (al->request && al->request->auth_user_request != NULL) {
-                        float mb_size = out.size / 1024;
-                        UserInfo *u = (UserInfo*)hash_lookup(users, al->request->auth_user_request->username());
-                        if (u != NULL) {
-                            u->tunnel = 19;
-                            u->current = u->current + mb_size;
-                            // u->mod_time = ctime(&squid_curtime);
-                            u->expiretime = squid_curtime;
+                    if (!isLocalhost) {
+                        debugs(33, DBG_IMPORTANT, "AQUI");
+                        if (al->request && al->request->auth_user_request != NULL) {
+                            float mb_size = out.size / 1024;
+                            UserInfo *u = (UserInfo*)hash_lookup(users, al->request->auth_user_request->username());
+                            if (u != NULL) {
+                                u->tunnel = 19;
+                                u->current = u->current + mb_size;
+                                // u->mod_time = ctime(&squid_curtime);
+                                u->expiretime = squid_curtime;
+                            }
                         }
                     }
                 }
+            }
+            catch (const std::exception& e){
+                debugs(33, DBG_CRITICAL, "Error: " << e.what());
             }
             debugs(33, DBG_IMPORTANT, ">>>DEAN>>>Aqui es donde debo actualizar la base de datos");
         #endif
@@ -1899,54 +1908,79 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
            ", err " << errflag << ", off " << http->out.size << ", len " <<
            (entry ? entry->objectLen() : 0));
 #if USE_AUTH
-    debugs(33, DBG_IMPORTANT, ">>>DEAN>>>Aqui es donde debo actualizar la base de datos");
-    if (http->logType != LOG_TAG_NONE && http->logType != LOG_TCP_DENIED) {
-        bool isLocalhost = true;
-        const char *localhost = "http://127.0.0.1/";
-        const char *dest = http->al->url;
-        for (int i = 0; i < 17; i++) {
-            if (localhost[i] != dest[i]) {
-                isLocalhost = false;
-                break;
-            }
-        }
-        if (!isLocalhost) {
-            //Buscar usuario en memoria
-            if (http->al->request && http->al->request->auth_user_request != NULL) {
-                UserInfo *u = (UserInfo*)hash_lookup(users, http->al->request->auth_user_request->username());
-                if (u == NULL) { 
-                    //Buscar usuario en base de dato agregarlo a la memoria y hacer mismo analisis
-                    quotaDB->Find(http->al->request->auth_user_request->username(), u);
-                    hash_join(users, &u->hash);
+    debugs(33, DBG_IMPORTANT, ">>>>>>>>>>>>>DEAN<<<<<<<<<<<<<<<<");
+    try 
+    {
+        debugs(33, DBG_IMPORTANT, "writeComplete");
+        if (http->logType != LOG_TAG_NONE && http->logType != LOG_TCP_DENIED) {
+            debugs(33, DBG_IMPORTANT, "If log");
+            bool isLocalhost = true;
+            const char *localhost = "http://127.0.0.1/";
+            const char *dest = http->uri;
+            debugs(33, DBG_IMPORTANT, "Localhost  " << localhost);
+            debugs(33, DBG_IMPORTANT, "Destino    " << dest);
+            for (int i = 0; i < 17; i++) {
+                if (localhost[i] != dest[i]) {
+                    isLocalhost = false;
+                    break;
                 }
-                else {
+            }
+            debugs(33, DBG_IMPORTANT, "Endif log");
+            if (!isLocalhost) {
+                debugs(33, DBG_IMPORTANT, "If localhost");
+                //Buscar usuario en memoria
+                if (http->al->request && http->al->request->auth_user_request != NULL) {
+                    UserInfo *u = (UserInfo*)hash_lookup(users, http->al->request->auth_user_request->username());
+                    if (u == NULL) { 
+                        debugs(33, DBG_IMPORTANT, "If user=Null");
+                        //Buscar usuario en base de dato agregarlo a la memoria y hacer mismo analisis
+                        u = quotaDB->Find(http->al->request->auth_user_request->username());
+                        hash_join(users, &u->hash);
+                        debugs(33, DBG_IMPORTANT, "user->quota\t\t" << u->quota);
+                        debugs(33, DBG_IMPORTANT, "user->current\t\t" << u->current);
+                        debugs(33, DBG_IMPORTANT, "EndIf user=Null");
+                    }
+                    debugs(33, DBG_IMPORTANT, "User already exists");
+                    debugs(33, DBG_IMPORTANT, "user->quota\t\t" << u->quota);
+                    debugs(33, DBG_IMPORTANT, "user->current\t\t" << u->current);
                     float mb_size = http->out.size / 1024;
-                    if (u->quota < u->current + mb_size) {
+                    debugs(33, DBG_IMPORTANT, "mb_size\t\t" << (int)mb_size);
+                    if (u->quota < u->current + (int)mb_size) {
                         //Overquota
+                        debugs(33, DBG_IMPORTANT, "Overquota");
                         int q = quotaDB->Quota(http->al->request->auth_user_request->username());
-                        float c = quotaDB->Consumed(http->al->request->auth_user_request->username());
-                        if (q <= u->quota && c >= u->current) {
+                        int c = quotaDB->Consumed(http->al->request->auth_user_request->username());
+                        debugs(33, DBG_IMPORTANT, "Quota " << q << " Consumed " << c);
+                        if (c < q) {
+                            debugs(33, DBG_IMPORTANT, "Write to squished");
                             char path_squished[512];
                             sprintf(path_squished, "%s/squid/squished", DEFAULT_SQUID_CONFIG_DIR);
                             FILE *f;
+                            debugs(33, DBG_IMPORTANT, "Path: " << path_squished);
                             f = fopen(path_squished, "a");
+                            debugs(33, DBG_IMPORTANT, "Path: " << path_squished);
                             fprintf(f, "%s\n", http->al->request->auth_user_request->username());
                             fclose(f);
                             debugs(33, DBG_IMPORTANT, "Deleting user " << u->username);
-                            quotaDB->SaveData(u->username, mb_size);
+                            quotaDB->SaveData(u->username, (int)mb_size);
                             hash_remove_link(users, &u->hash);
                             delete u;
-                            conn->close();
                         }
+                        conn->close();
                     }
-                    else {
+                    else 
+                    {
                         u->expiretime = squid_curtime;
                     } 
+                debugs(33, DBG_IMPORTANT, "EndIf localhost");
                 }
             }
         }
     }
-    debugs(33, DBG_IMPORTANT, ">>>DEAN>>>Aqui es donde debo actualizar la base de datos");
+    catch(const std::exception& e){
+        debugs(33, DBG_CRITICAL, "Error: " << e.what());
+    }
+    debugs(33, DBG_IMPORTANT, ">>>>>>>>>>>>>DEAN<<<<<<<<<<<<<<<<");
 #endif
     clientUpdateSocketStats(http->logType, size);
 

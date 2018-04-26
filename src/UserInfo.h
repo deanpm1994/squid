@@ -15,9 +15,18 @@ public:
     const char *username;
     // const char *mod_time;
     int quota;
-    int64_t current;
-    float tunnel;
+    int current;
+    int tunnel;
     time_t expiretime;
+    UserInfo(const char *user, int q, int c, int t, time_t exp)
+    {
+        this->hash.key = xstrdup(user);
+        this->username = user;
+        this->quota = q;
+        this->current = c;
+        this->tunnel = t;
+        this->expiretime = exp;
+    }
 };
 
 #endif

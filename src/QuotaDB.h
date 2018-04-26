@@ -8,6 +8,8 @@
 // #include "globals.h"
 #include "SquidTime.h"
 #include "UserInfo.h"
+#include "Debug.h"
+#include "UserInfo.h"
 
 
 #define HOST "10.6.143.9"
@@ -23,17 +25,17 @@ public:
 
     // float saveSize(const char *user, float mb_size, time_t curr_time);
     void SaveData(const char *username, int current);
-    void Find(const char *username, UserInfo *userInfo);
+    UserInfo* Find(const char *username);
     int Quota(const char *username);
     int Consumed(const char *username);
-    ~QuotaDB()
-    {
-        sprintf(query, "dbname=%s host=%s user=%s password=%s", DBNAME, HOST, USER, PASS);
-        conn = PQconnectdb(query);
-        if (PQstatus(conn) == CONNECTION_BAD) {
-            printf("Unable to connect to the database");
-        }
-    }
+    // ~QuotaDB()
+    // {
+    //     sprintf(query, "dbname=%s host=%s user=%s password=%s", DBNAME, HOST, USER, PASS);
+    //     conn = PQconnectdb(query);
+    //     if (PQstatus(conn) == CONNECTION_BAD) {
+    //         printf("Unable to connect to the database");
+    //     }
+    // }
 
 private:
     PGconn *conn;

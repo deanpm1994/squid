@@ -162,6 +162,7 @@ Auth::User::cacheInit(void)
         assert(users);
     }
 }
+void
 Auth::User::cleanUsers(void *datanotused) {
     //DEAN
     UserInfo *userinfo;
@@ -178,6 +179,7 @@ Auth::User::cleanUsers(void *datanotused) {
     debugs(29, 3, HERE << "Finished cleaning the user cache.");
     eventAdd("User Cache Maintenance", cleanUsers, NULL, ::Config.authenticateGCInterval, 1);
 }
+void
 Auth::User::saveUsers(void *datanotused) {
     //DEAN
     UserInfo *userinfo;
