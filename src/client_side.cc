@@ -1930,48 +1930,61 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
                 debugs(33, DBG_IMPORTANT, "If localhost");
                 //Buscar usuario en memoria
                 if (http->al->request && http->al->request->auth_user_request != NULL) {
+                    bool overquota = FALSE;
                     UserInfo *u = (UserInfo*)hash_lookup(users, http->al->request->auth_user_request->username());
                     if (u == NULL) { 
                         debugs(33, DBG_IMPORTANT, "If user=Null");
                         //Buscar usuario en base de dato agregarlo a la memoria y hacer mismo analisis
                         u = quotaDB->Find(http->al->request->auth_user_request->username());
-                        hash_join(users, &u->hash);
+                        if (u->current < u->quota) 
+                        {
+                            hash_join(users, &u->hash);
+                            overquota = FALSE;
+                        }
+                        else
+                        {
+                            conn->close();
+                            overquota = TRUE;
+                        }
                         debugs(33, DBG_IMPORTANT, "user->quota\t\t" << u->quota);
                         debugs(33, DBG_IMPORTANT, "user->current\t\t" << u->current);
                         debugs(33, DBG_IMPORTANT, "EndIf user=Null");
                     }
-                    debugs(33, DBG_IMPORTANT, "User already exists");
-                    debugs(33, DBG_IMPORTANT, "user->quota\t\t" << u->quota);
-                    debugs(33, DBG_IMPORTANT, "user->current\t\t" << u->current);
-                    float mb_size = http->out.size / 1024;
-                    debugs(33, DBG_IMPORTANT, "mb_size\t\t" << (int)mb_size);
-                    if (u->quota < u->current + (int)mb_size) {
-                        //Overquota
-                        debugs(33, DBG_IMPORTANT, "Overquota");
-                        int q = quotaDB->Quota(http->al->request->auth_user_request->username());
-                        int c = quotaDB->Consumed(http->al->request->auth_user_request->username());
-                        debugs(33, DBG_IMPORTANT, "Quota " << q << " Consumed " << c);
-                        if (c < q) {
-                            debugs(33, DBG_IMPORTANT, "Write to squished");
-                            char path_squished[512];
-                            sprintf(path_squished, "%s/squid/squished", DEFAULT_SQUID_CONFIG_DIR);
-                            FILE *f;
-                            debugs(33, DBG_IMPORTANT, "Path: " << path_squished);
-                            f = fopen(path_squished, "a");
-                            debugs(33, DBG_IMPORTANT, "Path: " << path_squished);
-                            fprintf(f, "%s\n", http->al->request->auth_user_request->username());
-                            fclose(f);
-                            debugs(33, DBG_IMPORTANT, "Deleting user " << u->username);
-                            quotaDB->SaveData(u->username, (int)mb_size);
-                            hash_remove_link(users, &u->hash);
-                            delete u;
-                        }
-                        conn->close();
-                    }
-                    else 
+                    if (!overquota)
                     {
-                        u->expiretime = squid_curtime;
-                    } 
+
+                        debugs(33, DBG_IMPORTANT, "user->quota\t\t" << u->quota);
+                        debugs(33, DBG_IMPORTANT, "user->current\t\t" << u->current);
+                        float mb_size = http->out.size / 1048576;
+                        debugs(33, DBG_IMPORTANT, "mb_size\t\t" << (int)mb_size);
+                        if (u->quota < u->current + (int)mb_size) {
+                            //Overquota
+                            debugs(33, DBG_IMPORTANT, "Overquota");
+                            int q = quotaDB->Quota(http->al->request->auth_user_request->username());
+                            int c = quotaDB->Consumed(http->al->request->auth_user_request->username());
+                            debugs(33, DBG_IMPORTANT, "Quota " << q << " Consumed " << c);
+                            if (c < q) {
+                                debugs(33, DBG_IMPORTANT, "Write to squished");
+                                char path_squished[512];
+                                sprintf(path_squished, "%s/squid/squished", DEFAULT_SQUID_CONFIG_DIR);
+                                FILE *f;
+                                // debugs(33, DBG_IMPORTANT, "Path: " << path_squished);
+                                f = fopen(path_squished, "a");
+                                // debugs(33, DBG_IMPORTANT, "Path: " << path_squished);
+                                fprintf(f, "%s\n", http->al->request->auth_user_request->username());
+                                fclose(f);
+                                debugs(33, DBG_IMPORTANT, "Deleting user " << u->username);
+                                quotaDB->SaveData(u->username, u->current + (int)mb_size);
+                                hash_remove_link(users, &u->hash);
+                                delete u;
+                            }
+                            conn->close();
+                        }
+                        else 
+                        {
+                            u->expiretime = squid_curtime;
+                        } 
+                    }
                 debugs(33, DBG_IMPORTANT, "EndIf localhost");
                 }
             }
