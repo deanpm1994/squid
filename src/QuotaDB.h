@@ -24,10 +24,10 @@ class QuotaDB
 public:
 
     // float saveSize(const char *user, float mb_size, time_t curr_time);
-    void SaveData(const char *username, int current);
+    void SaveData(const char *username, long long int current);
     UserInfo* Find(const char *username);
     int Quota(const char *username);
-    int Consumed(const char *username);
+    long long int Consumed(const char *username);
     // ~QuotaDB()
     // {
     //     sprintf(query, "dbname=%s host=%s user=%s password=%s", DBNAME, HOST, USER, PASS);

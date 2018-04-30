@@ -15,10 +15,10 @@ public:
     const char *username;
     // const char *mod_time;
     int quota;
-    int current;
-    int tunnel;
+    long long int current;
+    long long int tunnel;
     time_t expiretime;
-    UserInfo(const char *user, int q, int c, int t, time_t exp)
+    UserInfo(const char *user, int q, long long int c, long long int t, time_t exp)
     {
         this->hash.key = xstrdup(user);
         this->username = user;

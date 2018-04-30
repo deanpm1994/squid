@@ -695,11 +695,10 @@ ClientHttpRequest::logRequest()
                     if (!isLocalhost) {
                         debugs(33, DBG_IMPORTANT, "AQUI");
                         if (al->request && al->request->auth_user_request != NULL) {
-                            float mb_size = out.size / 1024;
                             UserInfo *u = (UserInfo*)hash_lookup(users, al->request->auth_user_request->username());
                             if (u != NULL) {
                                 u->tunnel = 19;
-                                u->current = u->current + mb_size;
+                                u->current = u->current + out.size;
                                 // u->mod_time = ctime(&squid_curtime);
                                 u->expiretime = squid_curtime;
                             }
@@ -1936,7 +1935,7 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
                         debugs(33, DBG_IMPORTANT, "If user=Null");
                         //Buscar usuario en base de dato agregarlo a la memoria y hacer mismo analisis
                         u = quotaDB->Find(http->al->request->auth_user_request->username());
-                        if (u->current < u->quota) 
+                        if ((int)(u->current/1048576) < u->quota) 
                         {
                             hash_join(users, &u->hash);
                             overquota = FALSE;
@@ -1955,15 +1954,16 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
 
                         debugs(33, DBG_IMPORTANT, "user->quota\t\t" << u->quota);
                         debugs(33, DBG_IMPORTANT, "user->current\t\t" << u->current);
-                        float mb_size = http->out.size / 1048576;
-                        debugs(33, DBG_IMPORTANT, "mb_size\t\t" << (int)mb_size);
-                        if (u->quota < u->current + (int)mb_size) {
+                        debugs(33, DBG_IMPORTANT, "lo que va\t\t" << u->current + http->out.size);
+                        // float mb_size = http->out.size / 1048576;
+                        // debugs(33, DBG_IMPORTANT, "mb_size\t\t" << (int)mb_size);
+                        if (u->quota < (int)((u->current + http->out.size)/ 1048576)) {
                             //Overquota
                             debugs(33, DBG_IMPORTANT, "Overquota");
                             int q = quotaDB->Quota(http->al->request->auth_user_request->username());
-                            int c = quotaDB->Consumed(http->al->request->auth_user_request->username());
+                            long long int c = quotaDB->Consumed(http->al->request->auth_user_request->username());
                             debugs(33, DBG_IMPORTANT, "Quota " << q << " Consumed " << c);
-                            if (c < q) {
+                            if ((int)(c / 1048576) < q) {
                                 debugs(33, DBG_IMPORTANT, "Write to squished");
                                 char path_squished[512];
                                 sprintf(path_squished, "%s/squid/squished", DEFAULT_SQUID_CONFIG_DIR);
@@ -1974,7 +1974,7 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
                                 fprintf(f, "%s\n", http->al->request->auth_user_request->username());
                                 fclose(f);
                                 debugs(33, DBG_IMPORTANT, "Deleting user " << u->username);
-                                quotaDB->SaveData(u->username, u->current + (int)mb_size);
+                                quotaDB->SaveData(u->username, u->current + http->out.size);
                                 hash_remove_link(users, &u->hash);
                                 delete u;
                             }

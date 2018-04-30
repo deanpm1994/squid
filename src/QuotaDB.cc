@@ -9,13 +9,13 @@
 
 #include "QuotaDB.h"
 
-void QuotaDB::SaveData(const char *username, int current) {
+void QuotaDB::SaveData(const char *username, long long int current) {
     sprintf(query, "dbname=%s host=%s user=%s password=%s", DBNAME, HOST, USER, PASS);
     conn = PQconnectdb(query);
 
     if(PQstatus(conn) == CONNECTION_OK)
     {
-        sprintf(query, "UPDATE %s SET consumido=%d WHERE correo='%s'", TABLE, current, username);
+        sprintf(query, "UPDATE %s SET consumido=%lld WHERE correo='%s'", TABLE, current, username);
         res = PQexec(conn,query);
         PQclear(res);
     } else {
@@ -38,7 +38,7 @@ QuotaDB::Find(const char *username) {
         if (PQresultStatus(res) == PGRES_TUPLES_OK) {
             debugs(33, DBG_IMPORTANT, "Inside If to create user");
             debugs(33, DBG_IMPORTANT, "Find----" << PQgetvalue(res,0,1));
-            user = new UserInfo(username, atoi(PQgetvalue(res, 0, 0)), atoi(PQgetvalue(res, 0, 1)), 19, squid_curtime);
+            user = new UserInfo(username, atoi(PQgetvalue(res, 0, 0)), atoll(PQgetvalue(res, 0, 1)), 19, squid_curtime);
             debugs(33, DBG_IMPORTANT, "After");
         }
         else {
@@ -77,7 +77,7 @@ QuotaDB::Quota(const char *username) {
     PQfinish(conn);
     return 0;
 }
-int
+long long int
 QuotaDB::Consumed(const char *username) {
     sprintf(query, "dbname=%s host=%s user=%s password=%s", DBNAME, HOST, USER, PASS);
     conn = PQconnectdb(query);
@@ -88,7 +88,7 @@ QuotaDB::Consumed(const char *username) {
         int consumed = 0;
         res = PQexec(conn,query);
         if (PQresultStatus(res) == PGRES_TUPLES_OK) {
-            consumed= atoi(PQgetvalue(res, 0, 0));
+            consumed= atoll(PQgetvalue(res, 0, 0));
         }
         else {
             printf("Error: %s",PQresultErrorMessage(res));

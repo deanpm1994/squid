@@ -370,7 +370,7 @@ TunnelStateData::ReadServer(const Comm::ConnectionPointer &c, char *buf, size_t 
                         debugs(33, DBG_IMPORTANT, "If user=Null");
                         //Buscar usuario en base de dato agregarlo a la memoria y hacer mismo analisis
                         u = quotaDB->Find(tunnelState->request->auth_user_request->username());
-                        if (u->current < u->quota) 
+                        if ((int)(u->current/1048576) < u->quota) 
                         {
                             hash_join(users, &u->hash);
                             overquota = FALSE;
@@ -390,16 +390,17 @@ TunnelStateData::ReadServer(const Comm::ConnectionPointer &c, char *buf, size_t 
 
                         debugs(33, DBG_IMPORTANT, "user->quota\t\t" << u->quota);
                         debugs(33, DBG_IMPORTANT, "user->current\t\t" << u->current);
+                        debugs(33, DBG_IMPORTANT, "lo que va\t\t" << u->current + u->tunnel);
                         u->tunnel += len;
-                        float mb_size = u->tunnel / 1048576;
-                        debugs(33, DBG_IMPORTANT, "mb_size\t\t" << (int)mb_size);
-                        if (u->quota < u->current + (int)mb_size) {
+                        // float mb_size = u->tunnel / 1048576;
+                        // debugs(33, DBG_IMPORTANT, "mb_size\t\t" << (int)mb_size);
+                        if (u->quota < (int)((u->current + u->tunnel)/ 1048576)) {
                             //Overquota
                             debugs(33, DBG_IMPORTANT, "Overquota");
                             int q = quotaDB->Quota(tunnelState->request->auth_user_request->username());
-                            int cons = quotaDB->Consumed(tunnelState->request->auth_user_request->username());
+                            long long int cons = quotaDB->Consumed(tunnelState->request->auth_user_request->username());
                             debugs(33, DBG_IMPORTANT, "Quota " << q << " Consumed " << cons);
-                            if (cons < q) {
+                            if ((int)(cons / 1048576) < q) {
                                 debugs(33, DBG_IMPORTANT, "Write to squished");
                                 char path_squished[512];
                                 sprintf(path_squished, "%s/squid/squished", DEFAULT_SQUID_CONFIG_DIR);
@@ -408,7 +409,7 @@ TunnelStateData::ReadServer(const Comm::ConnectionPointer &c, char *buf, size_t 
                                 fprintf(f, "%s\n", tunnelState->request->auth_user_request->username());
                                 fclose(f);
                                 debugs(33, DBG_IMPORTANT, "Deleting user " << u->username);
-                                quotaDB->SaveData(u->username, u->current + (int)mb_size);
+                                quotaDB->SaveData(u->username, u->current + u->tunnel);
                                 hash_remove_link(users, &u->hash);
                                 delete u;
                             }
