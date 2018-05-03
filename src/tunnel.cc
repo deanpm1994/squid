@@ -397,22 +397,17 @@ TunnelStateData::ReadServer(const Comm::ConnectionPointer &c, char *buf, size_t 
                         if (u->quota < (int)((u->current + u->tunnel)/ 1048576)) {
                             //Overquota
                             debugs(33, DBG_IMPORTANT, "Overquota");
-                            int q = quotaDB->Quota(tunnelState->request->auth_user_request->username());
-                            long long int cons = quotaDB->Consumed(tunnelState->request->auth_user_request->username());
-                            debugs(33, DBG_IMPORTANT, "Quota " << q << " Consumed " << cons);
-                            if ((int)(cons / 1048576) < q) {
-                                debugs(33, DBG_IMPORTANT, "Write to squished");
-                                char path_squished[512];
-                                sprintf(path_squished, "%s/squid/squished", DEFAULT_SQUID_CONFIG_DIR);
-                                FILE *f;
-                                f = fopen(path_squished, "a");
-                                fprintf(f, "%s\n", tunnelState->request->auth_user_request->username());
-                                fclose(f);
-                                debugs(33, DBG_IMPORTANT, "Deleting user " << u->username);
-                                quotaDB->SaveData(u->username, u->current + u->tunnel);
-                                hash_remove_link(users, &u->hash);
-                                delete u;
-                            }
+                            debugs(33, DBG_IMPORTANT, "Write to squished");
+                            //char path_squished[512];
+                            //sprintf(path_squished, "%s/squid/squished", DEFAULT_SQUID_CONFIG_DIR);
+                            FILE *f;
+                            f = fopen("/etc/squid/squished", "a");
+                            fprintf(f, "%s\n", tunnelState->request->auth_user_request->username());
+                            fclose(f);
+                            debugs(33, DBG_IMPORTANT, "Deleting user " << u->username);
+                            quotaDB->SaveData(u->username, u->current + u->tunnel);
+                            hash_remove_link(users, &u->hash);
+                            delete u;
                             tunnelState->client.conn->close();
                             tunnelState->server.conn->close();
                         }

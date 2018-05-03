@@ -1960,24 +1960,19 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
                         if (u->quota < (int)((u->current + http->out.size)/ 1048576)) {
                             //Overquota
                             debugs(33, DBG_IMPORTANT, "Overquota");
-                            int q = quotaDB->Quota(http->al->request->auth_user_request->username());
-                            long long int c = quotaDB->Consumed(http->al->request->auth_user_request->username());
-                            debugs(33, DBG_IMPORTANT, "Quota " << q << " Consumed " << c);
-                            if ((int)(c / 1048576) < q) {
-                                debugs(33, DBG_IMPORTANT, "Write to squished");
-                                char path_squished[512];
-                                sprintf(path_squished, "%s/squid/squished", DEFAULT_SQUID_CONFIG_DIR);
-                                FILE *f;
-                                // debugs(33, DBG_IMPORTANT, "Path: " << path_squished);
-                                f = fopen(path_squished, "a");
-                                // debugs(33, DBG_IMPORTANT, "Path: " << path_squished);
-                                fprintf(f, "%s\n", http->al->request->auth_user_request->username());
-                                fclose(f);
-                                debugs(33, DBG_IMPORTANT, "Deleting user " << u->username);
-                                quotaDB->SaveData(u->username, u->current + http->out.size);
-                                hash_remove_link(users, &u->hash);
-                                delete u;
-                            }
+                            debugs(33, DBG_IMPORTANT, "Write to squished");
+                            //char path_squished[512];
+                            //sprintf(path_squished, "%s/squid/squished", DEFAULT_SQUID_CONFIG_DIR);
+                            FILE *f;
+                            // debugs(33, DBG_IMPORTANT, "Path: " << path_squished);
+                            f = fopen("/etc/squid/squished", "a");
+                            // debugs(33, DBG_IMPORTANT, "Path: " << path_squished);
+                            fprintf(f, "%s\n", http->al->request->auth_user_request->username());
+                            fclose(f);
+                            debugs(33, DBG_IMPORTANT, "Deleting user " << u->username);
+                            quotaDB->SaveData(u->username, u->current + http->out.size);
+                            hash_remove_link(users, &u->hash);
+                            delete u;
                             conn->close();
                         }
                         else 

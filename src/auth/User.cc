@@ -158,7 +158,7 @@ Auth::User::cacheInit(void)
     if (!users) {
         users = hash_create((HASHCMP *) strcmp, 7921, hash_string);
         eventAdd("User Cache Maintenance", cleanUsers, NULL, ::Config.authenticateGCInterval, 1);
-        eventAdd("User Cache Maintenance", saveUsers, NULL, ::Config.authenticateGCInterval, 1);
+        eventAdd("User Cache Maintenance", checkUsers, NULL, 300, 1);
         assert(users);
     }
 }
@@ -174,27 +174,29 @@ Auth::User::cleanUsers(void *datanotused) {
             hash_remove_link(users, &userinfo->hash);
             delete userinfo;
         } 
-    }
-
-    debugs(29, 3, HERE << "Finished cleaning the user cache.");
-    eventAdd("User Cache Maintenance", cleanUsers, NULL, ::Config.authenticateGCInterval, 1);
-}
-void
-Auth::User::saveUsers(void *datanotused) {
-    //DEAN
-    UserInfo *userinfo;
-    hash_first(users);
-    while ((userinfo = ((UserInfo *) hash_next(users)))) {
-        int cons = quotaDB->Consumed(userinfo->username);
-        if (cons != userinfo->current && cons != 0) {
-            debugs(33, DBG_IMPORTANT, "Saving user " << userinfo->username);
+        else {
             quotaDB->SaveData(userinfo->username, userinfo->current);
         }
     }
 
     debugs(29, 3, HERE << "Finished cleaning the user cache.");
-    eventAdd("User Cache Maintenance", saveUsers, NULL, ::Config.authenticateGCInterval, 1);
+    eventAdd("User Cache Maintenance", cleanUsers, NULL, ::Config.authenticateGCInterval, 1);
 }
+
+Auth::User::checkUsers(void *datanotused) {
+    //DEAN
+    UserInfo *userinfo;
+    hash_first(users);
+    while ((userinfo = ((UserInfo *) hash_next(users)))) {
+        int q = quotaDB->Quota(userinfo->username);
+        if (userinfo->quota != q)
+            userinfo->quota = q;
+    }
+
+    debugs(29, 3, HERE << "Check new quota");
+    eventAdd("User Cache Maintenance", checkUsers, NULL, 300, 1);
+}
+
 
 void
 Auth::User::CachedACLsReset()
