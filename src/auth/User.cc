@@ -182,7 +182,7 @@ Auth::User::cleanUsers(void *datanotused) {
     debugs(29, 3, HERE << "Finished cleaning the user cache.");
     eventAdd("User Cache Maintenance", cleanUsers, NULL, ::Config.authenticateGCInterval, 1);
 }
-
+void
 Auth::User::checkUsers(void *datanotused) {
     //DEAN
     UserInfo *userinfo;
