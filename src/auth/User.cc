@@ -165,6 +165,7 @@ Auth::User::cacheInit(void)
 void
 Auth::User::cleanUsers(void *datanotused) {
     //DEAN
+    debugs(33, DBG_IMPORTANT, "In cleanUsers");
     UserInfo *userinfo;
     hash_first(users);
     while ((userinfo = ((UserInfo *) hash_next(users)))) {
@@ -180,11 +181,12 @@ Auth::User::cleanUsers(void *datanotused) {
     }
 
     debugs(29, 3, HERE << "Finished cleaning the user cache.");
-    eventAdd("User Cache Maintenance", cleanUsers, NULL, ::Config.authenticateGCInterval, 1);
+    eventAdd("Clean Users", cleanUsers, NULL, ::Config.authenticateGCInterval, 1);
 }
 
 Auth::User::checkUsers(void *datanotused) {
     //DEAN
+    debugs(33, DBG_IMPORTANT, "In checkUsers");
     UserInfo *userinfo;
     hash_first(users);
     while ((userinfo = ((UserInfo *) hash_next(users)))) {
@@ -194,7 +196,7 @@ Auth::User::checkUsers(void *datanotused) {
     }
 
     debugs(29, 3, HERE << "Check new quota");
-    eventAdd("User Cache Maintenance", checkUsers, NULL, 300, 1);
+    eventAdd("Check Users", checkUsers, NULL, 300, 1);
 }
 
 
@@ -257,6 +259,7 @@ Auth::User::cacheCleanup(void *datanotused)
         }
     }
     //DEAN
+    debugs(33, DBG_IMPORTANT, "In cacheCleanup");
     UserInfo *userinfo;
     hash_first(users);
     while ((userinfo = ((UserInfo *) hash_next(users)))) {
