@@ -1963,6 +1963,7 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
                             debugs(33, DBG_IMPORTANT, "Write to squished");
                             //char path_squished[512];
                             //sprintf(path_squished, "%s/squid/squished", DEFAULT_SQUID_CONFIG_DIR);
+                            debugs(33, DBG_IMPORTANT, "BEFORE WRITE");
                             FILE *f;
                             // debugs(33, DBG_IMPORTANT, "Path: " << path_squished);
                             f = fopen("/etc/squid/squished", "a");
@@ -1970,8 +1971,12 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
                             fprintf(f, "%s\n", http->al->request->auth_user_request->username());
                             fclose(f);
                             debugs(33, DBG_IMPORTANT, "Deleting user " << u->username);
+                            debugs(33, DBG_IMPORTANT, "BEFORE SAVE DATA");
                             quotaDB->SaveData(u->username, u->current + http->out.size);
+                            debugs(33, DBG_IMPORTANT, "AFTER SAVE DATA");
+                            debugs(33, DBG_IMPORTANT, "BEFORE REMOVE LINK");
                             hash_remove_link(users, &u->hash);
+                            debugs(33, DBG_IMPORTANT, "BEFORE delete");
                             delete u;
                             conn->close();
                         }

@@ -400,13 +400,18 @@ TunnelStateData::ReadServer(const Comm::ConnectionPointer &c, char *buf, size_t 
                             debugs(33, DBG_IMPORTANT, "Write to squished");
                             //char path_squished[512];
                             //sprintf(path_squished, "%s/squid/squished", DEFAULT_SQUID_CONFIG_DIR);
+                            debugs(33, DBG_IMPORTANT, "BEFORE WRITE");
                             FILE *f;
                             f = fopen("/etc/squid/squished", "a");
                             fprintf(f, "%s\n", tunnelState->request->auth_user_request->username());
                             fclose(f);
                             debugs(33, DBG_IMPORTANT, "Deleting user " << u->username);
+                            debugs(33, DBG_IMPORTANT, "BEFORE SAVE DATA");
                             quotaDB->SaveData(u->username, u->current + u->tunnel);
+                            debugs(33, DBG_IMPORTANT, "AFTER SAVE DATA");
+                            debugs(33, DBG_IMPORTANT, "BEFORE REMOVE LINK");
                             hash_remove_link(users, &u->hash);
+                            debugs(33, DBG_IMPORTANT, "BEFORE delete");
                             delete u;
                             tunnelState->client.conn->close();
                             tunnelState->server.conn->close();
