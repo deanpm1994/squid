@@ -54,25 +54,31 @@ QuotaDB::Find(const char *username) {
 } 
 int
 QuotaDB::Quota(const char *username) {
+    debugs(33, DBG_IMPORTANT, "In QuotaDBQuota");
     sprintf(query, "dbname=%s host=%s user=%s password=%s", DBNAME, HOST, USER, PASS);
     conn = PQconnectdb(query);
 
     if(PQstatus(conn) == CONNECTION_OK)
     {
+	debugs(33, DBG_IMPORTANT, "conn is ok");
         sprintf(query, "SELECT cuota_internet FROM %s WHERE correo='%s'", TABLE, username);
         int quota = 0;
         res = PQexec(conn,query);
         if (PQresultStatus(res) == PGRES_TUPLES_OK) {
+	    debugs(33, DBG_IMPORTANT, "query is ok");
             quota = atoi(PQgetvalue(res, 0, 0));
+            debugs(33, DBG_IMPORTANT, "this is quota " << (int)quota);
         }
         else {
+	    debugs(33, DBG_CRITICAL, "bad query" << PQresultErrorMessage(res));
             printf("Error: %s",PQresultErrorMessage(res));
         }
         PQclear(res);
         PQfinish(conn);
+	debugs(33, DBG_IMPORTANT, "before return");
         return quota;
     } else {
-        debugs(33, DBG_CRITICAL, "" << PQerrorMessage(conn));
+        debugs(33, DBG_CRITICAL, "Bad conn" << PQerrorMessage(conn));
     }
     PQfinish(conn);
     return 0;
