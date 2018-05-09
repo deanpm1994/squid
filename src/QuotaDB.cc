@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "postgresql/libpq-fe.h"
+#include "Mem.h"
 #include <time.h>
 // #include "globals.h"
 // #include "SquidTime.h"
@@ -28,7 +29,7 @@ UserInfo*
 QuotaDB::Find(const char *username) {
     sprintf(query, "dbname=%s host=%s user=%s password=%s", DBNAME, HOST, USER, PASS);
     conn = PQconnectdb(query);
-    UserInfo* user = NULL;
+    UserInfo* user = (UserInfo *)memAllocate(MEM_CLIENT_INFO);
     if(PQstatus(conn) == CONNECTION_OK)
     {
         sprintf(query, "SELECT cuota_internet,consumido FROM %s WHERE correo='%s'", TABLE, username);
@@ -38,7 +39,14 @@ QuotaDB::Find(const char *username) {
         if (PQresultStatus(res) == PGRES_TUPLES_OK) {
             debugs(33, DBG_IMPORTANT, "Inside If to create user");
             debugs(33, DBG_IMPORTANT, "Find----" << PQgetvalue(res,0,1));
-            user = new UserInfo(username, atoi(PQgetvalue(res, 0, 0)), atoll(PQgetvalue(res, 0, 1)), 19, squid_curtime);
+            // user = (UserInfo *)memAllocate(MEM_CLIENT_INFO);
+            user->hash.key = xstrdup(username);
+            user->username = username;
+            user->quota = atoi(PQgetvalue(res, 0, 0));
+            user->current = atoll(PQgetvalue(res, 0, 1));
+            user->tunnel = 19;
+            user->expiretime = squid_curtime;
+            // user = new UserInfo(username, atoi(PQgetvalue(res, 0, 0)), atoll(PQgetvalue(res, 0, 1)), 19, squid_curtime);
             debugs(33, DBG_IMPORTANT, "After");
         }
         else {

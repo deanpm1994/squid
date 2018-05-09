@@ -1976,6 +1976,8 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
                             debugs(33, DBG_IMPORTANT, "AFTER SAVE DATA");
                             debugs(33, DBG_IMPORTANT, "BEFORE REMOVE LINK");
                             hash_remove_link(users, &u->hash);
+                            safe_free(u->hash.key);
+                            memFree(u, MEM_CLIENT_INFO);
                             debugs(33, DBG_IMPORTANT, "BEFORE delete");
                             delete u;
                             conn->close();

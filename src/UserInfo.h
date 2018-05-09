@@ -27,6 +27,12 @@ public:
         this->tunnel = t;
         this->expiretime = exp;
     }
+    ~UserInfo() 
+    {
+        xfree((char*)username);
+        xfree(hash.key);
+        xfree(this);
+    }
 };
 
 #endif
