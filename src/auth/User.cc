@@ -152,13 +152,13 @@ Auth::User::cacheInit(void)
         /* First time around, 7921 should be big enough */
         proxy_auth_username_cache = hash_create((HASHCMP *) strcmp, 7921, hash_string);
         assert(proxy_auth_username_cache);
-        eventAdd("User Cache Maintenance", cacheCleanup, NULL, 300, 1);
+        eventAdd("User Cache Maintenance", cacheCleanup, NULL, ::Config.authenticateGCInterval, 1);
         last_discard = squid_curtime;
     }
     //DEAN
     if (!users) {
         users = hash_create((HASHCMP *) strcmp, 7921, hash_string);
-        eventAdd("Clean Users", cleanUsers, NULL, 100, 1);
+        eventAdd("Clean Users", cleanUsers, NULL, ::Config.authenticateGCInterval, 1);
         // eventAdd("Check Users", checkUsers, NULL, 100, 1);
         assert(users);
     }
@@ -191,7 +191,7 @@ Auth::User::cleanUsers(void *datanotused) {
     }
 
     debugs(29, 3, HERE << "Finished cleaning the user cache.");
-    eventAdd("Clean Users", cleanUsers, NULL, 100, 1);
+    eventAdd("Clean Users", cleanUsers, NULL, ::Config.authenticateGCInterval, 1);
 }
 // void
 // Auth::User::checkUsers(void *datanotused) {
@@ -287,7 +287,7 @@ Auth::User::cacheCleanup(void *datanotused)
     // }
 
     debugs(29, 3, HERE << "Finished cleaning the user cache.");
-    eventAdd("User Cache Maintenance", cacheCleanup, NULL, 300, 1);
+    eventAdd("User Cache Maintenance", cacheCleanup, NULL, ::Config.authenticateGCInterval, 1);
     last_discard = squid_curtime;
 }
 
