@@ -325,9 +325,9 @@ mainParseOptions(int argc, char *argv[])
     int c;
 
 #if USE_WIN32_SERVICE
-    while ((c = getopt(argc, argv, "CDFNO:RSVYXa:d:f:hik:m::n:rsl:u:vz?")) != -1)
+    while ((c = getopt(argc, argv, "CDFNO:RSVYXa:d:f:hik:m::n:rsl:u:w:vz?")) != -1)
 #else
-    while ((c = getopt(argc, argv, "CDFNRSYXa:d:f:hk:m::n:sl:u:vz?")) != -1)
+    while ((c = getopt(argc, argv, "CDFNRSYXa:d:f:hk:m::n:sl:u:w:vz?")) != -1)
 #endif
     {
 
@@ -585,6 +585,10 @@ mainParseOptions(int argc, char *argv[])
             Debug::log_stderr = 1;
             opt_create_swap_dirs = 1;
             break;
+        
+        case 'w':
+            printf("Other params %s\n",xstrdup(optarg));
+            exit(0);
 
         case 'h':
 

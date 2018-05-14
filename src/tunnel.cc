@@ -349,84 +349,84 @@ TunnelStateData::ReadServer(const Comm::ConnectionPointer &c, char *buf, size_t 
         debugs(33, DBG_IMPORTANT, "ReadServer");
         if (*tunnelState->logTag_ptr != LOG_TAG_NONE && *tunnelState->logTag_ptr != LOG_TCP_DENIED) {
             debugs(33, DBG_IMPORTANT, "If log");
-            bool isLocalhost = true;
-            const char *localhost = "http://127.0.0.1/";
-            const char *dest = tunnelState->url;
-            debugs(33, DBG_IMPORTANT, "Localhost  " << localhost);
-            debugs(33, DBG_IMPORTANT, "Destino    " << dest);
-            for (int i = 0; i < 17; i++) {
-                if (localhost[i] != dest[i]) {
-                    isLocalhost = false;
-                    break;
-                }
-            }
-            debugs(33, DBG_IMPORTANT, "Endif log");
-            if (!isLocalhost) {
-                debugs(33, DBG_IMPORTANT, "If localhost");
-                //Buscar usuario en memoria
-                if (tunnelState->request->auth_user_request->username()) {
-                    bool overquota = FALSE;
-                    UserInfo *u = (UserInfo*)hash_lookup(users, tunnelState->request->auth_user_request->username());
-                    if (u == NULL) { 
-                        debugs(33, DBG_IMPORTANT, "If user=Null");
-                        //Buscar usuario en base de dato agregarlo a la memoria y hacer mismo analisis
-                        u = quotaDB->Find(tunnelState->request->auth_user_request->username());
-                        if ((int)(u->current/1048576) < u->quota) 
-                        {
-                            hash_join(users, &u->hash);
-                            overquota = FALSE;
-                        }
-                        else
-                        {
-                            tunnelState->client.conn->close();
-                            tunnelState->server.conn->close();
-                            overquota = TRUE;
-                        }
-                        debugs(33, DBG_IMPORTANT, "user->quota\t\t" << u->quota);
-                        debugs(33, DBG_IMPORTANT, "user->current\t\t" << u->current);
-                        debugs(33, DBG_IMPORTANT, "EndIf user=Null");
-                    }
-                    if (!overquota)
+            // bool isLocalhost = true;
+            // const char *localhost = "http://127.0.0.1/";
+            // const char *dest = tunnelState->url;
+            // debugs(33, DBG_IMPORTANT, "Localhost  " << localhost);
+            // debugs(33, DBG_IMPORTANT, "Destino    " << dest);
+            // for (int i = 0; i < 17; i++) {
+            //     if (localhost[i] != dest[i]) {
+            //         isLocalhost = false;
+            //         break;
+            //     }
+            // }
+            // debugs(33, DBG_IMPORTANT, "Endif log");
+            // if (!isLocalhost) {
+            debugs(33, DBG_IMPORTANT, "If localhost");
+            //Buscar usuario en memoria
+            if (tunnelState->request->auth_user_request->username()) {
+                bool overquota = FALSE;
+                UserInfo *u = (UserInfo*)hash_lookup(users, tunnelState->request->auth_user_request->username());
+                if (u == NULL) { 
+                    debugs(33, DBG_IMPORTANT, "If user=Null");
+                    //Buscar usuario en base de dato agregarlo a la memoria y hacer mismo analisis
+                    u = quotaDB->Find(tunnelState->request->auth_user_request->username());
+                    if ((int)(u->current/1048576) < u->quota) 
                     {
-
-                        debugs(33, DBG_IMPORTANT, "user->quota\t\t" << u->quota);
-                        debugs(33, DBG_IMPORTANT, "user->current\t\t" << u->current);
-                        debugs(33, DBG_IMPORTANT, "lo que va\t\t" << u->current + u->tunnel);
-                        u->tunnel += len;
-                        // float mb_size = u->tunnel / 1048576;
-                        // debugs(33, DBG_IMPORTANT, "mb_size\t\t" << (int)mb_size);
-                        if (u->quota < (int)((u->current + u->tunnel)/ 1048576)) {
-                            //Overquota
-                            debugs(33, DBG_IMPORTANT, "Overquota");
-                            debugs(33, DBG_IMPORTANT, "Write to squished");
-                            //char path_squished[512];
-                            //sprintf(path_squished, "%s/squid/squished", DEFAULT_SQUID_CONFIG_DIR);
-                            debugs(33, DBG_IMPORTANT, "BEFORE WRITE");
-                            FILE *f;
-                            f = fopen("/etc/squid/squished", "a");
-                            fprintf(f, "%s\n", tunnelState->request->auth_user_request->username());
-                            fclose(f);
-                            debugs(33, DBG_IMPORTANT, "Deleting user " << u->username);
-                            debugs(33, DBG_IMPORTANT, "BEFORE SAVE DATA");
-                            quotaDB->SaveData(u->username, u->current + u->tunnel);
-                            debugs(33, DBG_IMPORTANT, "AFTER SAVE DATA");
-                            debugs(33, DBG_IMPORTANT, "BEFORE REMOVE LINK");
-                            hash_remove_link(users, &u->hash);
-                            safe_free(u->hash.key);
-                            memFree(u, MEM_CLIENT_INFO);
-                            debugs(33, DBG_IMPORTANT, "BEFORE delete");
-                            delete u;
-                            tunnelState->client.conn->close();
-                            tunnelState->server.conn->close();
-                        }
-                        else 
-                        {
-                            u->expiretime = squid_curtime;
-                        } 
+                        hash_join(users, &u->hash);
+                        overquota = FALSE;
                     }
-                debugs(33, DBG_IMPORTANT, "EndIf localhost");
+                    else
+                    {
+                        tunnelState->client.conn->close();
+                        tunnelState->server.conn->close();
+                        overquota = TRUE;
+                    }
+                    debugs(33, DBG_IMPORTANT, "user->quota\t\t" << u->quota);
+                    debugs(33, DBG_IMPORTANT, "user->current\t\t" << u->current);
+                    debugs(33, DBG_IMPORTANT, "EndIf user=Null");
                 }
+                if (!overquota)
+                {
+
+                    debugs(33, DBG_IMPORTANT, "user->quota\t\t" << u->quota);
+                    debugs(33, DBG_IMPORTANT, "user->current\t\t" << u->current);
+                    debugs(33, DBG_IMPORTANT, "lo que va\t\t" << u->current + u->tunnel);
+                    u->tunnel += len;
+                    // float mb_size = u->tunnel / 1048576;
+                    // debugs(33, DBG_IMPORTANT, "mb_size\t\t" << (int)mb_size);
+                    if (u->quota < (int)((u->current + u->tunnel)/ 1048576)) {
+                        //Overquota
+                        debugs(33, DBG_IMPORTANT, "Overquota");
+                        debugs(33, DBG_IMPORTANT, "Write to squished");
+                        //char path_squished[512];
+                        //sprintf(path_squished, "%s/squid/squished", DEFAULT_SQUID_CONFIG_DIR);
+                        debugs(33, DBG_IMPORTANT, "BEFORE WRITE");
+                        FILE *f;
+                        f = fopen("/etc/squid/squished", "a");
+                        fprintf(f, "%s\n", tunnelState->request->auth_user_request->username());
+                        fclose(f);
+                        debugs(33, DBG_IMPORTANT, "Deleting user " << u->username);
+                        debugs(33, DBG_IMPORTANT, "BEFORE SAVE DATA");
+                        quotaDB->SaveData(u->username, u->current + u->tunnel);
+                        debugs(33, DBG_IMPORTANT, "AFTER SAVE DATA");
+                        debugs(33, DBG_IMPORTANT, "BEFORE REMOVE LINK");
+                        hash_remove_link(users, &u->hash);
+                        safe_free(u->hash.key);
+                        memFree(u, MEM_CLIENT_INFO);
+                        debugs(33, DBG_IMPORTANT, "BEFORE delete");
+                        delete u;
+                        tunnelState->client.conn->close();
+                        tunnelState->server.conn->close();
+                    }
+                    else 
+                    {
+                        u->expiretime = squid_curtime;
+                    } 
+                }
+            debugs(33, DBG_IMPORTANT, "EndIf localhost");
             }
+            // }
         }
     }
     catch(const std::exception& e){
