@@ -116,7 +116,7 @@ QuotaDB::UpdateQuota(const char *username, int quota)
 }
 void
 QuotaDB::ResetConsumed(const char *username) {
-    sprintf(query, "UPDATE %s SET consumido=%lld WHERE correo='%s'", TABLE, atoll(0), username);
+    sprintf(query, "UPDATE %s SET consumido=%d WHERE correo='%s'", TABLE, 0, username);
     res = PQexec(conn,query);
     PQclear(res);
     // sprintf(query, "dbname=%s host=%s user=%s password=%s", DBNAME, HOST, USER, PASS);
