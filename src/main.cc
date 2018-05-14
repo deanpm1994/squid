@@ -73,6 +73,7 @@
 #include "tools.h"
 #include "unlinkd.h"
 #include "URL.h"
+#include "UserInfo.h"
 #include "wccp.h"
 #include "wccp2.h"
 #include "WinSvc.h"
@@ -325,9 +326,9 @@ mainParseOptions(int argc, char *argv[])
     int c;
 
 #if USE_WIN32_SERVICE
-    while ((c = getopt(argc, argv, "CDFNO:RSVYXa:d:f:hik:m::n:rsl:u:w:vz?")) != -1)
+    while ((c = getopt(argc, argv, "CDFINO:RSVYXa:d:f:hik:m::n:rsl:u:w:vz?")) != -1)
 #else
-    while ((c = getopt(argc, argv, "CDFNRSYXa:d:f:hk:m::n:sl:u:w:vz?")) != -1)
+    while ((c = getopt(argc, argv, "CDFINRSYXa:d:f:hk:m::n:sl:u:w:vz?")) != -1)
 #endif
     {
 
@@ -349,6 +350,19 @@ mainParseOptions(int argc, char *argv[])
             /** \par F
              * Set global option for foreground rebuild. opt_foreground_rebuild */
             opt_foreground_rebuild = 1;
+            break;
+        case 'I':
+            /** \par I
+             * Show users in cache */
+            if (users)
+            {
+                UserInfo *userinfo;
+                hash_first(users);
+                while ((userinfo = ((UserInfo *) hash_next(users)))) 
+                {
+                    printf("User:\t%s\n", userinfo->username);
+                }
+            }
             break;
 
         case 'N':
