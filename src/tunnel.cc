@@ -371,7 +371,9 @@ TunnelStateData::ReadServer(const Comm::ConnectionPointer &c, char *buf, size_t 
                     debugs(33, DBG_IMPORTANT, "If user=Null");
                     //Buscar usuario en base de dato agregarlo a la memoria y hacer mismo analisis
                     u = quotaDB->Find(tunnelState->request->auth_user_request->username());
-                    if ((int)(u->current/1048576) < u->quota) 
+                    if (u == NULL)
+                        debugs(33, DBG_IMPORTANT, "NULL");
+                    if (u != NULL || (int)(u->current/1048576) < u->quota) 
                     {
                         hash_join(users, &u->hash);
                         overquota = FALSE;
@@ -381,6 +383,7 @@ TunnelStateData::ReadServer(const Comm::ConnectionPointer &c, char *buf, size_t 
                         tunnelState->client.conn->close();
                         tunnelState->server.conn->close();
                         overquota = TRUE;
+                        return;
                     }
                     debugs(33, DBG_IMPORTANT, "user->quota\t\t" << u->quota);
                     debugs(33, DBG_IMPORTANT, "user->current\t\t" << u->current);

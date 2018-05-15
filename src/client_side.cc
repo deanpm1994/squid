@@ -1935,7 +1935,12 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
                     debugs(33, DBG_IMPORTANT, "If user=Null");
                     //Buscar usuario en base de dato agregarlo a la memoria y hacer mismo analisis
                     u = quotaDB->Find(http->al->request->auth_user_request->username());
-                    if ((int)(u->current/1048576) < u->quota) 
+                    if (u == NULL)
+                    {
+                        initiateClose("User dont exist");
+                        debugs(33, DBG_IMPORTANT, "NULL");
+                    }
+                    if (u != NULL || (int)(u->current/1048576) < u->quota) 
                     {
                         hash_join(users, &u->hash);
                         overquota = FALSE;
