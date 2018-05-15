@@ -158,7 +158,7 @@ Auth::User::cacheInit(void)
     //DEAN
     if (!users) {
         users = hash_create((HASHCMP *) strcmp, 7921, hash_string);
-        eventAdd("Clean Users", cleanUsers, NULL, 600, 1);
+        eventAdd("Clean Users", cleanUsers, NULL, 600   , 1);
         // eventAdd("Check Users", checkUsers, NULL, 100, 1);
         assert(users);
     }
@@ -174,8 +174,11 @@ Auth::User::cleanUsers(void *datanotused) {
         if (userinfo->expiretime + 1200 <= current_time.tv_sec) {
             debugs(33, DBG_IMPORTANT, "Deleting user " << userinfo->username);
             quotaDB->SaveData(userinfo->username, userinfo->current);
+            debugs(33, DBG_IMPORTANT, "Before remove link");
             hash_remove_link(users, &userinfo->hash);
+            debugs(33, DBG_IMPORTANT, "Before safe free");
             safe_free(userinfo->hash.key);
+            debugs(33, DBG_IMPORTANT, "Before memFree");
             memFree(userinfo, MEM_CLIENT_INFO);
             delete userinfo;
         } 
