@@ -171,7 +171,7 @@ Auth::User::cleanUsers(void *datanotused) {
     hash_first(users);
     while ((userinfo = ((UserInfo *) hash_next(users)))) {
 	debugs(33, DBG_IMPORTANT, "Users: " << userinfo->username);
-        if (userinfo->expiretime + 1200 <= current_time.tv_sec) {
+        if (userinfo->expiretime + 200 <= current_time.tv_sec) {
             debugs(33, DBG_IMPORTANT, "Deleting user " << userinfo->username);
             quotaDB->SaveData(userinfo->username, userinfo->current);
             debugs(33, DBG_IMPORTANT, "Before remove link");
@@ -180,9 +180,9 @@ Auth::User::cleanUsers(void *datanotused) {
             safe_free(userinfo->hash.key);
             debugs(33, DBG_IMPORTANT, "Before memFree");
             memFree(userinfo, MEM_CLIENT_INFO);
-            debugs(33, DBG_IMPORTANT, "Before delete");
-            delete userinfo;
-            debugs(33, DBG_IMPORTANT, "After delete");
+            // debugs(33, DBG_IMPORTANT, "Before delete");
+            // delete userinfo;
+            // debugs(33, DBG_IMPORTANT, "After delete");
         } 
         else {
             debugs(33, DBG_IMPORTANT, "User " << userinfo->username);

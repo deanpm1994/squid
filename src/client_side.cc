@@ -1984,9 +1984,9 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
                         safe_free(u->hash.key);
                         debugs(33, DBG_IMPORTANT, "Before memFree");
                         memFree(u, MEM_CLIENT_INFO);
-                        debugs(33, DBG_IMPORTANT, "Before delete");
-                        delete u;
-                        debugs(33, DBG_IMPORTANT, "After delete");
+                        // debugs(33, DBG_IMPORTANT, "Before delete");
+                        // delete u;
+                        // debugs(33, DBG_IMPORTANT, "After delete");
                         conn->close();
                     }
                     else 
