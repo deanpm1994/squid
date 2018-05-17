@@ -416,9 +416,11 @@ TunnelStateData::ReadServer(const Comm::ConnectionPointer &c, char *buf, size_t 
                         debugs(33, DBG_IMPORTANT, "BEFORE REMOVE LINK");
                         hash_remove_link(users, &u->hash);
                         safe_free(u->hash.key);
-                        memFree(u, MEM_CLIENT_INFO);
-                        debugs(33, DBG_IMPORTANT, "BEFORE delete");
-                        delete u;
+                        debugs(33, DBG_IMPORTANT, "Before memFree");
+                        memFree(userinfo, MEM_CLIENT_INFO);
+                        debugs(33, DBG_IMPORTANT, "Before delete");
+                        delete userinfo;
+                        debugs(33, DBG_IMPORTANT, "After delete");
                         tunnelState->client.conn->close();
                         tunnelState->server.conn->close();
                     }
