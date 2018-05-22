@@ -6,11 +6,13 @@ import os, sys
 connection_info = dict(database="proxy_db",user="proxy",password="yoidUct0", host="10.6.143.9")
 connection = None
 
-directions = ['/var/squid/logs/','/var/log/squid/','/usr/local/squid/var/logs/']
-
-f = open('/home/dean/reports/2018_05_22_16_20_01/2018_05_22_16_20_01', 'r')
-lines = list(f)
-f.close()
+directions = ['/var/squid/logs/access.log','/var/log/squid/access.log','/usr/local/squid/var/logs/access.log']
+lines = []
+for path in directions:
+    if os.path.exists(path):
+        f = open(path, 'r')
+        lines = list(f)
+        f.close()
 quotas = {}
 
 if not os.path.exists('.lastline'):
