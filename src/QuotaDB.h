@@ -31,20 +31,20 @@ public:
     void UpdateQuota(const char *username, int quota);
     void ResetConsumed(const char *username);
     bool Overquota(const char *username);
-    QuotaDB()
-    {
-        sprintf(query, "dbname=%s host=%s user=%s password=%s", DBNAME, HOST, USER, PASS);
-        conn = PQconnectdb(query);
-        if (PQstatus(conn) != CONNECTION_OK) {
-            debugs(33, DBG_CRITICAL, "Unable to connect to the database");
-            debugs(33, DBG_CRITICAL, "" << PQerrorMessage(conn));
-            PQfinish(conn);
-        }
-    }
-    ~QuotaDB()
-    {
-        PQfinish(conn);
-    }
+    // QuotaDB()
+    // {
+    //     sprintf(query, "dbname=%s host=%s user=%s password=%s", DBNAME, HOST, USER, PASS);
+    //     conn = PQconnectdb(query);
+    //     if (PQstatus(conn) != CONNECTION_OK) {
+    //         debugs(33, DBG_CRITICAL, "Unable to connect to the database");
+    //         debugs(33, DBG_CRITICAL, "" << PQerrorMessage(conn));
+    //         PQfinish(conn);
+    //     }
+    // }
+    // ~QuotaDB()
+    // {
+    //     PQfinish(conn);
+    // }
 
 private:
     PGconn *conn;

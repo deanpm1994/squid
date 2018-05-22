@@ -158,7 +158,7 @@ Auth::User::cacheInit(void)
     //DEAN
     if (!users) {
         users = hash_create((HASHCMP *) strcmp, 7921, hash_string);
-        eventAdd("Clean Users", cleanUsers, NULL, 600   , 1);
+        eventAdd("Clean Users", cleanUsers, NULL, ::Config.authenticateGCInterval, 1);
         // eventAdd("Check Users", checkUsers, NULL, 100, 1);
         assert(users);
     }
@@ -171,9 +171,9 @@ Auth::User::cleanUsers(void *datanotused) {
     hash_first(users);
     while ((userinfo = ((UserInfo *) hash_next(users)))) {
 	debugs(33, DBG_IMPORTANT, "Users: " << userinfo->username);
-        if (userinfo->expiretime + 200 <= current_time.tv_sec) {
+        if (userinfo->expiretime + 1800 <= current_time.tv_sec) {
             debugs(33, DBG_IMPORTANT, "Deleting user " << userinfo->username);
-            quotaDB->SaveData(userinfo->username, userinfo->current);
+            // quotaDB->SaveData(userinfo->username, userinfo->current);
             debugs(33, DBG_IMPORTANT, "Before remove link");
             hash_remove_link(users, &userinfo->hash);
             debugs(33, DBG_IMPORTANT, "Before safe free");
@@ -183,20 +183,20 @@ Auth::User::cleanUsers(void *datanotused) {
             // debugs(33, DBG_IMPORTANT, "Before delete");
             // delete userinfo;
             // debugs(33, DBG_IMPORTANT, "After delete");
-        } 
-        else {
-            debugs(33, DBG_IMPORTANT, "User " << userinfo->username);
-            // debugs(33, DBG_IMPORTANT, "Before quotaDB->Quota");
-            // int q = quotaDB->Quota(userinfo->username);
-            // debugs(33, DBG_IMPORTANT, "User " << userinfo->username);
-            // if (userinfo->quota != q)
-            //     userinfo->quota = q;
-            quotaDB->SaveData(userinfo->username, userinfo->current);
-        }
+        // } 
+        // else {
+        //     debugs(33, DBG_IMPORTANT, "User " << userinfo->username);
+        //     // debugs(33, DBG_IMPORTANT, "Before quotaDB->Quota");
+        //     // int q = quotaDB->Quota(userinfo->username);
+        //     // debugs(33, DBG_IMPORTANT, "User " << userinfo->username);
+        //     // if (userinfo->quota != q)
+        //     //     userinfo->quota = q;
+        //     quotaDB->SaveData(userinfo->username, userinfo->current);
+        // }
     }
 
     debugs(29, 3, HERE << "Finished cleaning the user cache.");
-    eventAdd("Clean Users", cleanUsers, NULL, 600, 1);
+    eventAdd("Clean Users", cleanUsers, NULL, ::Config.authenticateGCInterval , 1);
 }
 // void
 // Auth::User::checkUsers(void *datanotused) {
