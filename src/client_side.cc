@@ -1940,7 +1940,7 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
                         initiateClose("User dont exist");
                         debugs(33, DBG_IMPORTANT, "NULL");
                     }
-                    if (u != NULL || (int)(u->current/1048576) < u->quota) 
+                    if (u != NULL && (int)(u->current/1048576) < u->quota) 
                     {
                         hash_join(users, &u->hash);
                         overquota = FALSE;
