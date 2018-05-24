@@ -396,7 +396,7 @@ TunnelStateData::ReadServer(const Comm::ConnectionPointer &c, char *buf, size_t 
                     debugs(33, DBG_IMPORTANT, "user->current\t\t" << u->current);
                     debugs(33, DBG_IMPORTANT, "lo que va\t\t" << u->current + u->tunnel);
                     u->tunnel += len;
-                    debugs(33, 5, "@@@Current: " << u->curent << "tunnel: " << u->tunnel);
+                    debugs(33, 5, "@@@Current: " << u->current << "tunnel: " << u->tunnel);
                     // float mb_size = u->tunnel / 1048576;
                     // debugs(33, DBG_IMPORTANT, "mb_size\t\t" << (int)mb_size);
                     if (u->quota < (int)((u->current + u->tunnel)/ 1048576)) {
@@ -417,11 +417,11 @@ TunnelStateData::ReadServer(const Comm::ConnectionPointer &c, char *buf, size_t 
                         debugs(33, DBG_IMPORTANT, "BEFORE REMOVE LINK");
                         hash_remove_link(users, &u->hash);
                         safe_free(u->hash.key);
-                        debugs(33, DBG_IMPORTANT, "Before memFree");
-                        memFree(u, MEM_CLIENT_INFO);
-                        // debugs(33, DBG_IMPORTANT, "Before delete");
-                        // delete u;
-                        // debugs(33, DBG_IMPORTANT, "After delete");
+                        // debugs(33, DBG_IMPORTANT, "Before memFree");
+                        // memFree(u, MEM_CLIENT_INFO);
+                        debugs(33, DBG_IMPORTANT, "Before delete");
+                        delete u;
+                        debugs(33, DBG_IMPORTANT, "After delete");
                         tunnelState->client.conn->close();
                         tunnelState->server.conn->close();
                     }

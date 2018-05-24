@@ -697,7 +697,7 @@ ClientHttpRequest::logRequest()
                     if (al->request && al->request->auth_user_request != NULL) {
                         UserInfo *u = (UserInfo*)hash_lookup(users, al->request->auth_user_request->username());
                         if (u != NULL) {
-                            debugs(33, 5, "@@@Current: " << u->curent << "out.size: " << out.size);
+                            debugs(33, 5, "@@@Current: " << u->current << "out.size: " << out.size);
                             u->tunnel = 19;
                             u->current = u->current + out.size;
                             // u->mod_time = ctime(&squid_curtime);
@@ -1961,7 +1961,7 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
                     debugs(33, DBG_IMPORTANT, "user->quota\t\t" << u->quota);
                     debugs(33, DBG_IMPORTANT, "user->current\t\t" << u->current);
                     debugs(33, DBG_IMPORTANT, "lo que va\t\t" << u->current + http->out.size);
-                    debugs(33, 5, "@@@Current: " << u->curent << "out.size: " << http->out.size);
+                    debugs(33, 5, "@@@Current: " << u->current << "out.size: " << http->out.size);
                     // float mb_size = http->out.size / 1048576;
                     // debugs(33, DBG_IMPORTANT, "mb_size\t\t" << (int)mb_size);
                     if (u->quota < (int)((u->current + http->out.size)/ 1048576)) {
