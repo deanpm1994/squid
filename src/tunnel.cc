@@ -396,6 +396,7 @@ TunnelStateData::ReadServer(const Comm::ConnectionPointer &c, char *buf, size_t 
                     debugs(33, DBG_IMPORTANT, "user->current\t\t" << u->current);
                     debugs(33, DBG_IMPORTANT, "lo que va\t\t" << u->current + u->tunnel);
                     u->tunnel += len;
+                    debugs(33, 5, "@@@Current: " << u->curent << "tunnel: " << u->tunnel);
                     // float mb_size = u->tunnel / 1048576;
                     // debugs(33, DBG_IMPORTANT, "mb_size\t\t" << (int)mb_size);
                     if (u->quota < (int)((u->current + u->tunnel)/ 1048576)) {
