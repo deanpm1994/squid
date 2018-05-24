@@ -412,7 +412,7 @@ TunnelStateData::ReadServer(const Comm::ConnectionPointer &c, char *buf, size_t 
                         fclose(f);
                         debugs(33, DBG_IMPORTANT, "Deleting user " << u->username);
                         debugs(33, DBG_IMPORTANT, "BEFORE SAVE DATA");
-                        quotaDB->SaveData(u->username, u->current + u->tunnel);
+                        quotaDB->SaveData(u->username, u->tunnel);
                         debugs(33, DBG_IMPORTANT, "AFTER SAVE DATA");
                         debugs(33, DBG_IMPORTANT, "BEFORE REMOVE LINK");
                         hash_remove_link(users, &u->hash);

@@ -17,7 +17,7 @@ QuotaDB::SaveData(const char *username, long long int current) {
 
     if(PQstatus(conn) == CONNECTION_OK)
     {
-        sprintf(query, "UPDATE %s SET consumido=%lld WHERE correo='%s'", TABLE, current, username);
+        sprintf(query, "UPDATE %s SET consumido=consumido + %lld WHERE correo='%s'", TABLE, current, username);
         res = PQexec(conn,query);
         PQclear(res);
     } else {
