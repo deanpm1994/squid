@@ -183,6 +183,10 @@ Auth::User::cleanUsers(void *datanotused) {
             // debugs(33, DBG_IMPORTANT, "After delete");
         } 
     }
+<<<<<<< HEAD
+=======
+    UserInfo *userinfo;
+>>>>>>> 44c7bf5a51294739cee7d9aec2b1ad1b96732cb9
     hash_first(users);
     debugs(33, DBG_IMPORTANT, "Users: cached");
     while ((userinfo = ((UserInfo *) hash_next(users))))
