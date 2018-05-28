@@ -104,7 +104,6 @@ private:
      * Garbage Collection for the username cache.
      */
     static void cleanUsers(void *unused);
-    // static void checkUsers(void *unused);
     static void cacheCleanup(void *unused);
     static time_t last_discard; /// Time of last username cache garbage collection.
 

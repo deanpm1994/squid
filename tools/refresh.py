@@ -1,55 +1,75 @@
 #!/usr/bin/env python
 
 import psycopg2 as db
-import os, sys
+import os, sys, time
 
 connection_info = dict(database="proxy_db",user="proxy",password="yoidUct0", host="10.6.143.9")
 connection = None
 
-directions = ['/var/squid/logs/access.log','/var/log/squid/access.log','/usr/local/squid/var/logs/access.log']
+direction = ''
+directions = ['/var/squid/logs/','/var/log/squid/','/usr/local/squid/var/logs/']
 lines = []
 for path in directions:
-    if os.path.exists(path):
-        f = open(path, 'r')
+    if os.path.exists(str(path+'access.log')):
+	direction = path
+        f = open(path+'access.log', 'r')
         lines = list(f)
         f.close()
 if lines != []:
     quotas = {}
 
-    if not os.path.exists('.lastline'):
-        with open('.lastline', 'w') as lastline:
-            lastline.write(lines[0])
-            lastline.write('0')
+    if not os.path.exists(direction+'.lastline'):
+        with open(direction+'.lastline', 'w') as lastline:
+            lastline.write("-1\n")
+	    lastline.write(lines[0])
+            lastline.write("-1\n")
+	    lastline.write(time.ctime())
         
-    flast = open('.lastline', 'r')
+    flast = open(direction+'.lastline', 'r')
     data = list(flast)
-    first = data[0]
-    last = int(data[1].strip())
+    first = data[1]
+    last = int(data[0].strip())
     flast.close()
+    print first
+    print lines[0]
     if first != lines[0]:
-        with open('.lastline', 'w') as lastline:
-            lastline.write(lines[0])
-            lastline.write('0')
-    print "No Changes"
+        with open(direction+'.lastline', 'w') as lastline:
+            lastline.write("-1\n")
+	    lastline.write(lines[0])
+            lastline.write("-1\n")
+	    lastline.write(time.ctime())
+        last = -1
+    else:
+	print "No Changes"
 
-    for line in lines[last:]:
-        print line
-        date, duration, ip, status, bytesc, oper, url, user, method, cont_type = line.split()
-        if user != '-' and not status.__contains__('TCP_DENIED/') and not status.__contains__('NONE/'):
-            if not quotas.has_key(user):
-                quotas[user] = int(bytesc)
-            else:
-                quotas[user] += int(bytesc)
-        last += 1
+    print last
+    if last == -1:
+	print "Nuevo"
+        last = 0
+    for line in lines[last+1:]:
+        try:
+		date, duration, ip, status, bytesc, oper, url, user, method, cont_type = line.split()
+        	if user != '-' and not status.__contains__('TCP_DENIED/') and not status.__contains__('NONE/'):
+            		if not quotas.has_key(user):
+                		quotas[user] = int(bytesc)
+            		else:
+                		quotas[user] += int(bytesc)
+        except:
+		print "Hey"
+		print line
+	last += 1
 
-    with open('.lastline', 'w') as lastline:
-        lastline.write(lines[0])
-        lastline.write(str(last))
+    with open(direction+'.lastline', 'w') as lastline:
+        lastline.write(str(last) + "\n")
+	lastline.write(lines[0])
+        lastline.write(str(last) + "\n")
+	lastline.write(time.ctime())
     # print quotas
 
     for user in quotas.keys():
+	print user
         query = "SELECT consumido FROM estudiantes_dean WHERE correo = %s"
-        query_args = (user)
+        query_args = (str(user),)
         try:
             if connection is None:
                 connection = db.connect(**connection_info)
