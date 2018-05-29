@@ -73,12 +73,15 @@ QuotaDB::Find(const char *username) {
         else {
             debugs(33, DBG_CRITICAL, "Error " << PQresultErrorMessage(res));
         }
-        debugs(33, DBG_IMPORTANT, "By Find User");
+        debugs(33, DBG_IMPORTANT, "Bye Find User");
         PQclear(res);
+        debugs(33, DBG_IMPORTANT, "After PQclear");
     } else {
         debugs(33, DBG_CRITICAL, "" << PQerrorMessage(conn));
     }
+    debugs(33, DBG_IMPORTANT, "Before PQfinish");
     PQfinish(conn);
+    debugs(33, DBG_IMPORTANT, "After PQfinish");
     return user;
 } 
 int
