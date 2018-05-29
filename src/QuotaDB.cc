@@ -43,6 +43,8 @@ QuotaDB::DeleteUser(const char *username) {
 
 UserInfo*
 QuotaDB::Find(const char *username) {
+    int quota = 0;
+    long long int current = 0;
     sprintf(query, "dbname=%s host=%s user=%s password=%s", DBNAME, HOST, USER, PASS);
     conn = PQconnectdb(query);
     UserInfo* user = (UserInfo *)memAllocate(MEM_CLIENT_INFO);
@@ -51,36 +53,25 @@ QuotaDB::Find(const char *username) {
         sprintf(query, "SELECT cuota_internet,consumido FROM %s WHERE correo='%s'", TABLE, username);
         debugs(33, DBG_IMPORTANT, "Inside Find User");
         res = PQexec(conn,query);
-        debugs(33, DBG_IMPORTANT, "ResStatus: " << PQresultStatus(res));
+        // debugs(33, DBG_IMPORTANT, "ResStatus: " << PQresultStatus(res));
         if (PQresultStatus(res) == PGRES_TUPLES_OK) {
-            debugs(33, DBG_IMPORTANT, "Inside If to create user");
-            debugs(33, DBG_IMPORTANT, "Find----" << PQgetvalue(res,0,1));
-            // user = (UserInfo *)memAllocate(MEM_CLIENT_INFO);
-            if (PQntuples(res) == 0)
-            {
-                debugs(33, DBG_IMPORTANT, "DENTRO DE LA QUERY VACIA");
-                return NULL;
-            }
-            user->hash.key = xstrdup(username);
-            user->username = username;
-            user->quota = atoi(PQgetvalue(res, 0, 0));
-            user->current = atoll(PQgetvalue(res, 0, 1));
-            user->tunnel = 19;
-            user->expiretime = squid_curtime;
-            // user = new UserInfo(username, atoi(PQgetvalue(res, 0, 0)), atoll(PQgetvalue(res, 0, 1)), 19, squid_curtime);
-            debugs(33, DBG_IMPORTANT, "After");
+            quota = atoi(PQgetvalue(res, 0, 0));
+            current = atoll(PQgetvalue(res, 0, 1));
         }
         else {
             debugs(33, DBG_CRITICAL, "Error " << PQresultErrorMessage(res));
         }
-        debugs(33, DBG_IMPORTANT, "Bye Find User");
         PQclear(res);
-        debugs(33, DBG_IMPORTANT, "After PQclear");
     } else {
         debugs(33, DBG_CRITICAL, "" << PQerrorMessage(conn));
     }
-    debugs(33, DBG_IMPORTANT, "Before PQfinish");
     PQfinish(conn);
+    user->hash.key = xstrdup(username);
+    user->username = username;
+    user->quota = quota;
+    user->current = current;
+    user->tunnel = 19;
+    user->expiretime = squid_curtime;
     debugs(33, DBG_IMPORTANT, "After PQfinish");
     return user;
 } 
