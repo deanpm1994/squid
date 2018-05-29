@@ -1871,7 +1871,11 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
            ", err " << errflag << ", off " << http->out.size << ", len " <<
            (entry ? entry->objectLen() : 0));
     clientUpdateSocketStats(http->logType, size);
-
+    debugs(33, 5, "DEAN");
+    debugs(33, 5, size);
+    http->out.size = size;
+    http->logRequest();
+    debugs(33, 5, "DEAN");
     /* Bail out quickly on Comm::ERR_CLOSING - close handlers will tidy up */
 
     if (errflag == Comm::ERR_CLOSING || !Comm::IsConnOpen(conn))

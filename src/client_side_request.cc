@@ -257,7 +257,7 @@ ClientHttpRequest::~ClientHttpRequest()
      */
     assert(logType < LOG_TYPE_MAX);
 
-    logRequest();
+    // logRequest();
 
     loggingEntry(NULL);
 
