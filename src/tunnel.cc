@@ -341,7 +341,7 @@ TunnelStateData::ReadServer(const Comm::ConnectionPointer &c, char *buf, size_t 
     assert(cbdataReferenceValid(tunnelState));
     debugs(26, 3, HERE << c);
     debugs(33, 5, "DEAN");
-    debugs(33, 5, tunnelState->http->out.size);
+    tunnelState->http->out.size = len;
     tunnelState->http->logRequest();
     debugs(33, 5, "DEAN");
     tunnelState->readServer(buf, len, errcode, xerrno);

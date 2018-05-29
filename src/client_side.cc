@@ -1872,7 +1872,6 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
            (entry ? entry->objectLen() : 0));
     clientUpdateSocketStats(http->logType, size);
     debugs(33, 5, "DEAN");
-    debugs(33, 5, size);
     http->out.size = size;
     http->logRequest();
     debugs(33, 5, "DEAN");
