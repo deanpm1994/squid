@@ -13,17 +13,17 @@
 void 
 QuotaDB::SaveData(const char *username, long long int current) {
     sprintf(query, "dbname=%s host=%s user=%s password=%s", DBNAME, HOST, USER, PASS);
-    connection = PQconnectdb(query);
+    dbconn = PQconnectdb(query);
 
-    if(PQstatus(connection) == CONNECTION_OK)
+    if(PQstatus(dbconn) == CONNECTION_OK)
     {
         sprintf(query, "UPDATE %s SET consumido=consumido + %lld WHERE correo='%s'", TABLE, current, username);
-        res = PQexec(connection,query);
+        res = PQexec(dbconn,query);
         PQclear(res);
     } else {
-        debugs(33, DBG_CRITICAL, "" << PQerrorMessage(connection));
+        debugs(33, DBG_CRITICAL, "" << PQerrorMessage(dbconn));
     }
-    PQfinish(connection);
+    PQfinish(dbconn);
 }
 // void 
 // QuotaDB::DeleteUser(const char *username) {
@@ -47,13 +47,13 @@ QuotaDB::Find(const char *username) {
     long long int current = 0;
     UserInfo* user = (UserInfo *)memAllocate(MEM_CLIENT_INFO);
     sprintf(query, "dbname=%s host=%s user=%s password=%s", DBNAME, HOST, USER, PASS);
-    connection = PQconnectdb(query);
-    debugs(33, DBG_IMPORTANT, "Connection " << connection);
-    if(PQstatus(connection) == CONNECTION_OK)
+    dbconn = PQconnectdb(query);
+    debugs(33, DBG_IMPORTANT, "Connection " << dbconn);
+    if(PQstatus(dbconn) == CONNECTION_OK)
     {
         sprintf(query, "SELECT cuota_internet,consumido FROM %s WHERE correo='%s'", TABLE, username);
         debugs(33, DBG_IMPORTANT, "Inside Find User");
-        res = PQexec(connection,query);
+        res = PQexec(dbconn,query);
         debugs(33, DBG_IMPORTANT, "ResStatus: " << PQresultStatus(res));
         if (PQresultStatus(res) == PGRES_TUPLES_OK) {
             quota = atoi(PQgetvalue(res, 0, 0));
@@ -64,10 +64,10 @@ QuotaDB::Find(const char *username) {
         }
         PQclear(res);
     } else {
-        debugs(33, DBG_CRITICAL, "" << PQerrorMessage(connection));
+        debugs(33, DBG_CRITICAL, "" << PQerrorMessage(dbconn));
     }
-    debugs(33, DBG_IMPORTANT, "Connection " << connection);
-    PQfinish(connection);
+    debugs(33, DBG_IMPORTANT, "Connection " << dbconn);
+    PQfinish(dbconn);
     debugs(33, DBG_IMPORTANT, "Before PQFinish ");
     user->hash.key = xstrdup(username);
     user->username = username;

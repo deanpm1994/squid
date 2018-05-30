@@ -47,7 +47,7 @@ public:
     // }
 
 private:
-    PGconn *connection;
+    PGconn *dbconn;
     PGresult *res;
     // int rec_count;
     // int row;
