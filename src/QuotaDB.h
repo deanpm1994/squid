@@ -25,12 +25,12 @@ public:
 
     // float saveSize(const char *user, float mb_size, time_t curr_time);
     void SaveData(const char *username, long long int current);
-    void DeleteUser(const char *username);
+    // void DeleteUser(const char *username);
     UserInfo* Find(const char *username);
-    int Quota(const char *username);
-    void UpdateQuota(const char *username, int quota);
-    void ResetConsumed(const char *username);
-    bool Overquota(const char *username);
+    // int Quota(const char *username);
+    // void UpdateQuota(const char *username, int quota);
+    // void ResetConsumed(const char *username);
+    // bool Overquota(const char *username);
     // QuotaDB()
     // {
     //     sprintf(query, "dbname=%s host=%s user=%s password=%s", DBNAME, HOST, USER, PASS);
