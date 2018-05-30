@@ -48,12 +48,13 @@ QuotaDB::Find(const char *username) {
     UserInfo* user = (UserInfo *)memAllocate(MEM_CLIENT_INFO);
     sprintf(query, "dbname=%s host=%s user=%s password=%s", DBNAME, HOST, USER, PASS);
     connection = PQconnectdb(query);
+    debugs(33, DBG_IMPORTANT, "Connection " << connection);
     if(PQstatus(connection) == CONNECTION_OK)
     {
         sprintf(query, "SELECT cuota_internet,consumido FROM %s WHERE correo='%s'", TABLE, username);
         debugs(33, DBG_IMPORTANT, "Inside Find User");
         res = PQexec(connection,query);
-        // debugs(33, DBG_IMPORTANT, "ResStatus: " << PQresultStatus(res));
+        debugs(33, DBG_IMPORTANT, "ResStatus: " << PQresultStatus(res));
         if (PQresultStatus(res) == PGRES_TUPLES_OK) {
             quota = atoi(PQgetvalue(res, 0, 0));
             current = atoll(PQgetvalue(res, 0, 1));
@@ -65,7 +66,9 @@ QuotaDB::Find(const char *username) {
     } else {
         debugs(33, DBG_CRITICAL, "" << PQerrorMessage(connection));
     }
+    debugs(33, DBG_IMPORTANT, "Connection " << connection);
     PQfinish(connection);
+    debugs(33, DBG_IMPORTANT, "Before PQFinish ");
     user->hash.key = xstrdup(username);
     user->username = username;
     user->quota = quota;
