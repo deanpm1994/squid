@@ -13,6 +13,7 @@
 #include "acl/AclNameList.h"
 #include "CacheDigest.h"
 #include "ClientInfo.h"
+#include "UserInfo.h"
 #include "disk.h"
 #include "dlink.h"
 #include "event.h"
@@ -446,6 +447,7 @@ Mem::Init(void)
     memDataInit(MEM_NET_DB_NAME, "net_db_name", sizeof(net_db_name), 0);
     memDataInit(MEM_RELIST, "RegexList", sizeof(RegexList), 0);
     memDataInit(MEM_CLIENT_INFO, "ClientInfo", sizeof(ClientInfo), 0);
+    memDataInit(MEM_USER_INFO, "UserInfo", sizeof(UserInfo), 0);
     memDataInit(MEM_MD5_DIGEST, "MD5 digest", SQUID_MD5_DIGEST_LENGTH, 0);
     MemPools[MEM_MD5_DIGEST]->setChunkSize(512 * 1024);
 

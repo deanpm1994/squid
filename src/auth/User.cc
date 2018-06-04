@@ -176,7 +176,7 @@ Auth::User::cleanUsers(void *datanotused) {
             debugs(33, DBG_IMPORTANT, "Before safe free");
             safe_free(userinfo->hash.key);
             debugs(33, DBG_IMPORTANT, "Before memFree");
-            memFree(userinfo, MEM_CLIENT_INFO);
+            memFree(userinfo, MEM_USER_INFO);
             debugs(33, DBG_IMPORTANT, "After memFree");
             // debugs(33, DBG_IMPORTANT, "Before delete");
             // delete userinfo;

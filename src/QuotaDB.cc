@@ -45,7 +45,7 @@ UserInfo*
 QuotaDB::Find(const char *username) {
     int quota = 0;
     long long int current = 0;
-    UserInfo* user = (UserInfo *)memAllocate(MEM_CLIENT_INFO);
+    UserInfo* user = (UserInfo *)memAllocate(MEM_USER_INFO);
     sprintf(query, "dbname=%s host=%s user=%s password=%s", DBNAME, HOST, USER, PASS);
     dbconn = PQconnectdb(query);
     debugs(33, DBG_IMPORTANT, "Connection " << dbconn);
@@ -73,7 +73,7 @@ QuotaDB::Find(const char *username) {
     user->username = username;
     user->quota = quota;
     user->current = current;
-    user->tunnel = 19;
+    // user->tunnel = 19;
     user->expiretime = squid_curtime;
     debugs(33, DBG_IMPORTANT, "After PQfinish");
     return user;

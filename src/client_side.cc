@@ -676,27 +676,27 @@ ClientHttpRequest::logRequest()
             updateCounters();
 
         if (getConn() != NULL && getConn()->clientConnection != NULL) {
-        #if USE_AUTH
-            debugs(33, DBG_IMPORTANT, ">>>DEAN>>> Finaliza una conexión");
-            try
-            {
-                if (logType != LOG_TAG_NONE && logType != LOG_TCP_DENIED) {
-                    if (al->request && al->request->auth_user_request != NULL) {
-                        UserInfo *u = (UserInfo*)hash_lookup(users, al->request->auth_user_request->username());
-                        if (u != NULL) {
-                            debugs(33, 5, "@@@Current: " << u->current << "out.size: " << out.size);
-                            u->tunnel = 19;
-                            u->current = u->current + out.size;
-                            u->expiretime = squid_curtime;
-                        }
-                    }
-                }
-            }
-            catch (const std::exception& e){
-                debugs(33, DBG_CRITICAL, "Error: " << e.what());
-            }
-            debugs(33, DBG_IMPORTANT, ">>>DEAN>>> Finaliza una conexión");
-        #endif
+        // #if USE_AUTH
+        //     debugs(33, DBG_IMPORTANT, ">>>DEAN>>> Finaliza una conexión");
+        //     try
+        //     {
+        //         if (logType != LOG_TAG_NONE && logType != LOG_TCP_DENIED) {
+        //             if (al->request && al->request->auth_user_request != NULL) {
+        //                 UserInfo *u = (UserInfo*)hash_lookup(users, al->request->auth_user_request->username());
+        //                 if (u != NULL) {
+        //                     debugs(33, 5, "@@@Current: " << u->current << "out.size: " << out.size);
+        //                     u->tunnel = 19;
+        //                     u->current = u->current + out.size;
+        //                     u->expiretime = squid_curtime;
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     catch (const std::exception& e){
+        //         debugs(33, DBG_CRITICAL, "Error: " << e.what());
+        //     }
+        //     debugs(33, DBG_IMPORTANT, ">>>DEAN>>> Finaliza una conexión");
+        // #endif
             clientdbUpdate(getConn()->clientConnection->remote, logType, AnyP::PROTO_HTTP, out.size);
         }
     }
@@ -1896,7 +1896,7 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
     debugs(33, DBG_IMPORTANT, ">>>>>>>>>>>>>DEAN<<<<<<<<<<<<<<<<");
     try 
     {
-        debugs(33, DBG_IMPORTANT, "writeComplete");
+        // debugs(33, DBG_IMPORTANT, "writeComplete");
         if (http->logType != LOG_TAG_NONE && http->logType != LOG_TCP_DENIED) {
             //Buscar usuario en memoria
             if (http->al->request && http->al->request->auth_user_request != NULL) {
@@ -1906,17 +1906,12 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
                     // debugs(33, DBG_IMPORTANT, "If user=Null");
                     //Buscar usuario en base de dato agregarlo a la memoria y hacer mismo analisis
                     u = quotaDB->Find(http->al->request->auth_user_request->username());
-                    if (u == NULL)
-                    {
-                        initiateClose("User dont exist");
-                        debugs(33, DBG_IMPORTANT, "NULL");
-                    }
                     if (u != NULL && (int)(u->current/1048576) < u->quota) 
                     {
                         hash_join(users, &u->hash);
                         overquota = FALSE;
                     }
-                    else
+                    if (u == NULL || (int)(u->current/1048576) > u->quota)
                     {
                         conn->close();
                         overquota = TRUE;
@@ -1933,6 +1928,7 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
                         f = fopen("/etc/squid/squished", "a");
                         fprintf(f, "%s\n", http->al->request->auth_user_request->username());
                         fclose(f);
+                        system("/usr/local/squid/sbin/squid -k reconfigure");
                         debugs(33, DBG_IMPORTANT, "Before save data");
                         quotaDB->SaveData(u->username, size);
                         debugs(33, DBG_IMPORTANT, "Deleting user " << u->username);
@@ -1941,7 +1937,7 @@ ClientSocketContext::writeComplete(const Comm::ConnectionPointer &conn, char *bu
                         debugs(33, DBG_IMPORTANT, "Before safe free");
                         safe_free(u->hash.key);
                         debugs(33, DBG_IMPORTANT, "Before memFree");
-                        memFree(u, MEM_CLIENT_INFO);
+                        memFree(u, MEM_USER_INFO);
                         debugs(33, DBG_IMPORTANT, "After memFree");
                         // debugs(33, DBG_IMPORTANT, "Before delete");
                         // delete u;

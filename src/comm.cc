@@ -204,7 +204,7 @@ static Comm::Flag
 commBind(int s, struct addrinfo &inaddr)
 {
     ++ statCounter.syscalls.sock.binds;
-
+    debugs(50, 3, "commBind: inaddr.ai_addr " << inaddr.ai_addr <<" inaddr.ai_addrlen " << inaddr.ai_addrlen);
     if (bind(s, inaddr.ai_addr, inaddr.ai_addrlen) == 0) {
         debugs(50, 6, "commBind: bind socket FD " << s << " to " << fd_table[s].local_addr);
         return Comm::OK;

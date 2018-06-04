@@ -357,14 +357,12 @@ TunnelStateData::ReadServer(const Comm::ConnectionPointer &c, char *buf, size_t 
                     debugs(33, DBG_IMPORTANT, "If user=Null");
                     //Buscar usuario en base de dato agregarlo a la memoria y hacer mismo analisis
                     u = quotaDB->Find(tunnelState->request->auth_user_request->username());
-                    if (u == NULL)
-                        debugs(33, DBG_IMPORTANT, "NULL");
                     if (u != NULL && (int)(u->current/1048576) < u->quota) 
                     {
                         hash_join(users, &u->hash);
                         overquota = FALSE;
                     }
-                    else
+                    if (u == NULL && (int)(u->current/1048576) > u->quota)
                     {
                         tunnelState->client.conn->close();
                         tunnelState->server.conn->close();
@@ -373,7 +371,8 @@ TunnelStateData::ReadServer(const Comm::ConnectionPointer &c, char *buf, size_t 
                 }
                 if (!overquota)
                 {
-                    u->tunnel += len;
+                    // u->tunnel += len;
+                    u->current += len;
                     u->expiretime = squid_curtime;
                     if (u->quota < (int)(u->current/ 1048576)) {
                         //Overquota
@@ -386,6 +385,7 @@ TunnelStateData::ReadServer(const Comm::ConnectionPointer &c, char *buf, size_t 
                         f = fopen("/etc/squid/squished", "a");
                         fprintf(f, "%s\n", tunnelState->request->auth_user_request->username());
                         fclose(f);
+                        system("/usr/local/squid/sbin/squid -k reconfigure");
                         debugs(33, DBG_IMPORTANT, "Deleting user " << u->username);
                         debugs(33, DBG_IMPORTANT, "BEFORE SAVE DATA");
                         quotaDB->SaveData(u->username, len);
@@ -394,7 +394,7 @@ TunnelStateData::ReadServer(const Comm::ConnectionPointer &c, char *buf, size_t 
                         hash_remove_link(users, &u->hash);
                         safe_free(u->hash.key);
                         debugs(33, DBG_IMPORTANT, "Before memFree");
-                        memFree(u, MEM_CLIENT_INFO);
+                        memFree(u, MEM_USER_INFO);
                         debugs(33, DBG_IMPORTANT, "After memFree");
                         // delete u;
                         // debugs(33, DBG_IMPORTANT, "After delete");
