@@ -362,7 +362,7 @@ TunnelStateData::ReadServer(const Comm::ConnectionPointer &c, char *buf, size_t 
                         hash_join(users, &u->hash);
                         overquota = FALSE;
                     }
-                    if (u == NULL && (int)(u->current/1048576) > u->quota)
+                    if (u == NULL || (int)(u->current/1048576) > u->quota)
                     {
                         tunnelState->client.conn->close();
                         tunnelState->server.conn->close();

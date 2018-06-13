@@ -30,8 +30,8 @@ if lines != []:
     first = data[1]
     last = int(data[0].strip())
     flast.close()
-    print first
-    print lines[0]
+    # print first
+    # print lines[0]
     if first != lines[0]:
         with open(direction+'.lastline', 'w') as lastline:
             lastline.write("-1\n")
@@ -40,11 +40,11 @@ if lines != []:
 	    lastline.write(time.ctime())
         last = -1
     else:
-	print "No Changes"
+	# print "No Changes"
 
-    print last
+    # print last
     if last == -1:
-	print "Nuevo"
+	# print "Nuevo"
         last = 0
     for line in lines[last+1:]:
         try:
@@ -55,8 +55,9 @@ if lines != []:
             		else:
                 		quotas[user] += int(bytesc)
         except:
-		print "Hey"
-		print line
+                pass
+		# print "Hey"
+		# print line
 	last += 1
 
     with open(direction+'.lastline', 'w') as lastline:
@@ -67,7 +68,7 @@ if lines != []:
     # print quotas
 
     for user in quotas.keys():
-	print user
+	# print user
         query = "SELECT consumido FROM estudiantes_dean WHERE correo = %s"
         query_args = (str(user),)
         try:
@@ -82,7 +83,7 @@ if lines != []:
         try:
             row = cursor.fetchone()
             if row is not None:
-                print quotas[user] + int(row[0])
+                # print quotas[user] + int(row[0])
                 query = "UPDATE estudiantes_dean SET consumido = %s WHERE correo = %s"
                 query_args = (quotas[user] + int(row[0]), user)
                 cursor.execute(query, query_args)
@@ -91,11 +92,12 @@ if lines != []:
                 print "Something wrong"
                 sys.exit(2)
         except:
-            print "Something wrong"
+            # print "Something wrong"
             sys.exit(2)
         finally:
             if connection:
-                print "Finally"
+                # print "Finally"
                 connection.close()
 else:
-    print "No access.log...Doing nothing"
+    pass
+    #print "No access.log...Doing nothing"
